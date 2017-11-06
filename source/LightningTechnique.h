@@ -1,16 +1,17 @@
 #pragma once
 
 #include "Technique.h"
-#include "math_3d.h"
 
 // Include GLM
 #include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/transform.hpp>
 
 struct DirectionLight
 {
-    Vector3f color;
+    glm::vec3 color;
     float ambient_intensity;
-    Vector3f direction;
+    glm::vec3 direction;
     float diffuse_intensity;
 };
 
@@ -20,8 +21,8 @@ public:
     LightingTechnique() = default;
     bool init() override;
 
-    void set_wvp(const Matrix4f & wvp);
-    void set_world_matrix(const Matrix4f & wvp);
+    void set_wvp(const glm::mat4 & wvp);
+    void set_world_matrix(const glm::mat4 & wvp);
     void set_texture_unit(unsigned int texture_unit);
     void set_directional_light(const DirectionLight & light);
 

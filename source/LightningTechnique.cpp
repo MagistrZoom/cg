@@ -100,14 +100,14 @@ bool LightingTechnique::init()
     return true;
 }
 
-void LightingTechnique::set_wvp(const Matrix4f & wvp)
+void LightingTechnique::set_wvp(const glm::mat4 & wvp)
 {
-    glUniformMatrix4fv(m_wvp_location, 1, GL_TRUE, (const GLfloat*)wvp.m);
+    glUniformMatrix4fv(m_wvp_location, 1, GL_TRUE, &wvp[0][0]);
 }
 
-void LightingTechnique::set_world_matrix(const Matrix4f & wvp)
+void LightingTechnique::set_world_matrix(const glm::mat4 & wvp)
 {
-    glUniformMatrix4fv(m_world_matrix_location, 1, GL_TRUE, (const GLfloat*)wvp.m);
+    glUniformMatrix4fv(m_world_matrix_location, 1, GL_TRUE, &wvp[0][0]);
 }
 
 void LightingTechnique::set_texture_unit(unsigned int texture_unit)
@@ -119,8 +119,7 @@ void LightingTechnique::set_directional_light(const DirectionLight & light)
 {
     glUniform3f(m_direction_light_location.color, light.color.x, light.color.y, light.color.z);
     glUniform1f(m_direction_light_location.ambient_intensity, light.ambient_intensity);
-    Vector3f direction = light.direction;
-    direction.Normalize();
+    glm::vec3 direction = glm::normalize(light.direction);
     glUniform3f(m_direction_light_location.direction, direction.x, direction.y, direction.z);
     glUniform1f(m_direction_light_location.diffuse_intensity, light.diffuse_intensity);
 }

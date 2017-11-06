@@ -1,84 +1,58 @@
-#ifndef PIPELINE_H
-#define	PIPELINE_H
+#pragma once
 
-#include "math_3d.h"
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/transform.hpp>
+#include <glm/gtx/transform.hpp>
 
 class Pipeline
 {
 public:
     Pipeline()
     {
-        m_scale      = Vector3f(1.0f, 1.0f, 1.0f);
-        m_worldPos   = Vector3f(0.0f, 0.0f, 0.0f);
-        m_rotateInfo = Vector3f(0.0f, 0.0f, 0.0f);
+        m_scale_matrix = glm::mat4(1.0f);
+        m_world_matrix = glm::mat4(0.0f);
+        m_rotate_matrix = glm::mat4(1.0f);
     }
 
-    void Scale(float ScaleX, float ScaleY, float ScaleZ)
+    void scale(float x, float y, float z)
     {
-        m_scale.x = ScaleX;
-        m_scale.y = ScaleY;
-        m_scale.z = ScaleZ;
+        m_scale_matrix = glm::scale(glm::vec3(x, y, z));
     }
 
-    void WorldPos(float x, float y, float z)
+    void world_position(float x, float y, float z)
     {
-        m_worldPos.x = x;
-        m_worldPos.y = y;
-        m_worldPos.z = z;
+        m_world_matrix = glm::translate(glm::vec3(x, y, z));
     }
 
-    void Rotate(float RotateX, float RotateY, float RotateZ)
+    void rotate(float angle, const glm::vec3 & vector)
     {
-        m_rotateInfo.x = RotateX;
-        m_rotateInfo.y = RotateY;
-        m_rotateInfo.z = RotateZ;
+        m_rotate_matrix = glm::rotate(angle, vector);
     }
 
-    void SetPerspectiveProj(float FOV, float Width, float Height, float zNear, float zFar)
+    void set_perspective(float fov, float width, float height, float znear, float zfar)
     {
-        m_persProj.FOV    = FOV;
-        m_persProj.Width  = Width;
-        m_persProj.Height = Height;
-        m_persProj.zNear  = zNear;
-        m_persProj.zFar   = zFar;
+        m_perspective_matrix = glm::perspective(glm::radians(fov), width / height, znear, zfar);
     }
 
-    void SetCamera(const Vector3f& Pos, const Vector3f& Target, const Vector3f& Up)
+    void set_camera(const glm::vec3 & position, const glm::vec3 & target, const glm::vec3 & up)
     {
-        m_camera.Pos = Pos;
-        m_camera.Target = Target;
-        m_camera.Up = Up;
+        m_camera = glm::lookAt(position, position + target, up);
     }
 
+    const glm::mat4 & get_wvp();
 
-    const Matrix4f& GetWVPTrans();
-
-    const Matrix4f& GetWorldTrans();
-
+    const glm::mat4 & get_world();
 
 private:
-    Vector3f m_scale;
-    Vector3f m_worldPos;
-    Vector3f m_rotateInfo;
+    glm::mat4 m_scale_matrix;
+    glm::mat4 m_world_matrix;
+    glm::mat4 m_rotate_matrix;
 
-    struct {
-        float FOV;
-        float Width;
-        float Height;
-        float zNear;
-        float zFar;
-    } m_persProj;
+    glm::mat4 m_perspective_matrix;
 
-    struct {
-        Vector3f Pos;
-        Vector3f Target;
-        Vector3f Up;
-    } m_camera;
+    glm::mat4 m_camera;
 
-    Matrix4f m_WVPtransformation;
-    Matrix4f m_WorldTransformation;
+    glm::mat4 m_wvp;
+    glm::mat4 m_world;
 };
-
-
-#endif	/* PIPELINE_H */
-

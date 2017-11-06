@@ -84,10 +84,10 @@ int main(void)
     home2.init();
 
     DirectionLight light_direction;
-    light_direction.color = Vector3f(1.0f, 1.0f, 1.0f);
+    light_direction.color = glm::vec3(1.0f, 1.0f, 1.0f);
     light_direction.ambient_intensity = 0.3f;
     light_direction.diffuse_intensity = 0.9f;
-    light_direction.direction = Vector3f(0.5f, 0.0f, 0.5f);
+    light_direction.direction = glm::vec3(0.5f, 0.0f, 0.5f);
 
     Texture home_texture(GL_TEXTURE_2D, "models/basic_home/tex_woodlands_main.jpg");
     Texture home_texture2(GL_TEXTURE_2D, "models/basic_home/tex_woodlands_main_s.jpg");
@@ -101,26 +101,26 @@ int main(void)
         const auto & up = camera->get_up();
 
         Pipeline p;
-        p.WorldPos(0.0f, 0.0f, 1.0f);
-        p.SetCamera(position, target, up);
-        p.SetPerspectiveProj(60.0f, 1920, 1080, 0.1f, 500.0f);
+        p.world_position(0.0f, 0.0f, 1.0f);
+        p.set_camera(position, target, up);
+        p.set_perspective(45.0f, 1920, 1080, 0.1f, 500.0f);
 
         home_texture.bind(GL_TEXTURE0);
         home.set_texture_unit(0);
-        home.set_wvp(p.GetWVPTrans());
-        home.set_world_matrix(p.GetWorldTrans());
+        home.set_wvp(glm::transpose(p.get_wvp()));
+        home.set_world_matrix(glm::transpose(p.get_world()));
         home.set_directional_light(light_direction);
         home.enable();
         home.render();
 
-        p.WorldPos(0.0f, 0.0f, 60.0f);
-        home_texture2.bind(GL_TEXTURE1);
-        home2.set_texture_unit(1);
-        home2.set_wvp(p.GetWVPTrans());
-        home2.set_world_matrix(p.GetWorldTrans());
-        home2.set_directional_light(light_direction);
-        home2.enable();
-        home2.render();
+        // p.world_position(0.0f, 0.0f, 60.0f);
+        // home_texture2.bind(GL_TEXTURE1);
+        // home2.set_texture_unit(1);
+        // home2.set_wvp(p.get_wvp());
+        // home2.set_world_matrix(p.get_world());
+        // home2.set_directional_light(light_direction);
+        // home2.enable();
+        // home2.render();
 
         // Swap buffers
         glfwSwapBuffers(window);

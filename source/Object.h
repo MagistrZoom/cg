@@ -28,7 +28,7 @@ private:
     GLuint m_uvbuffer;
     GLuint m_normalbuffer;
 
-    std::vector<Vector3f> m_vertices;
-    std::vector<Vector2f> m_uvs;
-    std::vector<Vector3f> m_normals;
+    std::vector<glm::vec3> m_vertices;
+    std::vector<glm::vec2> m_uvs;
+    std::vector<glm::vec3> m_normals;
 };

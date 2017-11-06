@@ -1,11 +1,12 @@
 #pragma once
 
-#include "math_3d.h"
+// Include GLM
+#include <glm/glm.hpp>
 
 
 bool loadOBJ(
 	const char * path, 
-	std::vector<Vector3f> & out_vertices, 
-	std::vector<Vector2f> & out_uvs, 
-	std::vector<Vector3f> & out_normals
+	std::vector<glm::vec3> & out_vertices, 
+	std::vector<glm::vec2> & out_uvs, 
+	std::vector<glm::vec3> & out_normals
 );

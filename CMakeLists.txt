@@ -62,7 +62,6 @@ add_executable(lab
         source/LightningTechnique.cpp
         source/Object.cpp
         source/pipeline.cpp
-        source/math_3d.cpp
         source/Technique.cpp
         source/Texture.cpp
 

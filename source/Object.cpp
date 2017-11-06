@@ -27,15 +27,15 @@ bool Object::init()
 
     glGenBuffers(1, &m_vertexbuffer);
     glBindBuffer(GL_ARRAY_BUFFER, m_vertexbuffer);
-    glBufferData(GL_ARRAY_BUFFER, m_vertices.size() * sizeof(Vector3f), &m_vertices[0], GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, m_vertices.size() * sizeof(glm::vec3), &m_vertices[0], GL_STATIC_DRAW);
 
     glGenBuffers(1, &m_uvbuffer);
     glBindBuffer(GL_ARRAY_BUFFER, m_uvbuffer);
-    glBufferData(GL_ARRAY_BUFFER, m_uvs.size() * sizeof(Vector2f), &m_uvs[0], GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, m_uvs.size() * sizeof(glm::vec2), &m_uvs[0], GL_STATIC_DRAW);
 
     glGenBuffers(1, &m_normalbuffer);
     glBindBuffer(GL_ARRAY_BUFFER, m_normalbuffer);
-    glBufferData(GL_ARRAY_BUFFER, m_normals.size() * sizeof(Vector3f), &m_normals[0], GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, m_normals.size() * sizeof(glm::vec3), &m_normals[0], GL_STATIC_DRAW);
 
     return true;
 }

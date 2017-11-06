@@ -2,11 +2,12 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/transform.hpp>
+#include <glm/gtx/rotate_vector.hpp>
 
 Camera::Camera(GLFWwindow * window,
-               Vector3f position,
-               Vector3f target,
-               Vector3f up,
+               glm::vec3 position,
+               glm::vec3 target,
+               glm::vec3 up,
                float range_view,
                float horizontal_angle,
                float vertical_angle,
@@ -74,16 +75,14 @@ void Camera::handle_keyboard_i(int key, int action)
         m_position -= (m_target * m_move_speed);
         break;
     case GLFW_KEY_D: {
-        Vector3f Right = m_up.Cross(m_target);
-        Right.Normalize();
-        Right *= m_move_speed;
-        m_position += Right;
+        glm::vec3 right = glm::normalize(glm::cross(m_target, m_up));
+        right *= m_move_speed;
+        m_position += right;
     } break;
     case GLFW_KEY_A: {
-        Vector3f Left = m_target.Cross(m_up);
-        Left.Normalize();
-        Left *= m_move_speed;
-        m_position += Left;
+        glm::vec3 left = glm::normalize(glm::cross(m_up, m_target));
+        left *= m_move_speed;
+        m_position += left;
     } break;
     }
 }
@@ -101,24 +100,21 @@ void Camera::handle_mouse_i(double xpos, double ypos)
     glfwSetCursorPos(m_window, m_screen_width / 2, m_screen_height / 2);
 
     // Compute new orientation
-    m_horizontal_angle += m_mouse_speed * float(-m_screen_width / 2 + xpos);
+    m_horizontal_angle += m_mouse_speed * float(m_screen_width / 2 - xpos);
     m_vertical_angle += m_mouse_speed * float(-m_screen_height / 2 + ypos);
 
-    const Vector3f Vaxis(0.0f, 1.0f, 0.0f);
+    const glm::vec3 vaxis(0.0f, 1.0f, 0.0f);
 
-    // Rotate the view vector by the horizontal angle around the vertical axis
-    Vector3f View(1.0f, 0.0f, 0.0f);
-    View.Rotate(m_horizontal_angle, Vaxis);
-    View.Normalize();
+    // rotate the view vector by the horizontal angle around the vertical axis
+    glm::vec3 view(1.0f, 0.0f, 0.0f);
+    view = glm::normalize(glm::rotateY(view, m_horizontal_angle));
 
-    // Rotate the view vector by the vertical angle around the horizontal axis
-    Vector3f Haxis = Vaxis.Cross(View);
-    Haxis.Normalize();
-    View.Rotate(m_vertical_angle, Haxis);
+    // rotate the view vector by the vertical angle around the horizontal axis
+    glm::vec3 haxis = glm::cross(vaxis, view);
+    haxis = glm::normalize(haxis);
+    view = glm::rotate(view, m_vertical_angle, haxis);
 
-    m_target = View;
-    m_target.Normalize();
+    m_target = glm::normalize(view);
 
-    m_up = m_target.Cross(Haxis);
-    m_up.Normalize();
+    m_up = glm::normalize(glm::cross(m_target, haxis));
 }

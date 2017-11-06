@@ -9,16 +9,16 @@
 
 bool loadOBJ(
         const char * path,
-        std::vector<Vector3f> & out_vertices,
-        std::vector<Vector2f> & out_uvs,
-        std::vector<Vector3f> & out_normals)
+        std::vector<glm::vec3> & out_vertices,
+        std::vector<glm::vec2> & out_uvs,
+        std::vector<glm::vec3> & out_normals)
 {
     printf("Loading OBJ file %s...\n", path);
 
     std::vector<unsigned int> vertexIndices, uvIndices, normalIndices;
-    std::vector<Vector3f> temp_vertices;
-    std::vector<Vector2f> temp_uvs;
-    std::vector<Vector3f> temp_normals;
+    std::vector<glm::vec3> temp_vertices;
+    std::vector<glm::vec2> temp_uvs;
+    std::vector<glm::vec3> temp_normals;
 
     FILE * file = fopen(path, "r");
     if (file == NULL) {
@@ -38,18 +38,18 @@ bool loadOBJ(
         // else : parse lineHeader
 
         if (strcmp(lineHeader, "v") == 0) {
-            Vector3f vertex;
+            glm::vec3 vertex;
             fscanf(file, "%f %f %f\n", &vertex.x, &vertex.y, &vertex.z);
             temp_vertices.push_back(vertex);
         }
         else if (strcmp(lineHeader, "vt") == 0) {
-            Vector2f uv;
+            glm::vec2 uv;
             fscanf(file, "%f %f\n", &uv.x, &uv.y);
             uv.y = -uv.y; // Invert V coordinate since we will only use DDS texture, which are inverted. Remove if you want to use TGA or BMP loaders.
             temp_uvs.push_back(uv);
         }
         else if (strcmp(lineHeader, "vn") == 0) {
-            Vector3f normal;
+            glm::vec3 normal;
             fscanf(file, "%f %f %f\n", &normal.x, &normal.y, &normal.z);
             temp_normals.push_back(normal);
         }
@@ -88,9 +88,9 @@ bool loadOBJ(
         unsigned int normalIndex = normalIndices[i];
 
         // Get the attributes thanks to the index
-        Vector3f vertex = temp_vertices[vertexIndex - 1];
-        Vector2f uv = temp_uvs[uvIndex - 1];
-        Vector3f normal = temp_normals[normalIndex - 1];
+        glm::vec3 vertex = temp_vertices[vertexIndex - 1];
+        glm::vec2 uv = temp_uvs[uvIndex - 1];
+        glm::vec3 normal = temp_normals[normalIndex - 1];
 
         // Put the attributes in buffers
         out_vertices.push_back(vertex);
