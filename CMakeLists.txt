@@ -17,8 +17,7 @@ if( CMAKE_BINARY_DIR MATCHES " " )
 endif()
 
 
-
-# Compile external dependencies 
+# Compile external dependencies
 add_subdirectory (external)
 
 # On Visual 2005 and above, this module can set the debug working directory
@@ -34,12 +33,9 @@ endif(INCLUDE_DISTRIB)
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g -Wall")
 
 include_directories(
-	external/AntTweakBar-1.16/include/
 	external/glfw-3.1.2/include/GLFW/
 	external/glm-0.9.7.1/
 	external/glew-1.13.0/include/
-	external/assimp-3.0.1270/include/
-	external/bullet-2.81-rev2613/src/
         ${ImageMagick_INCLUDE_DIRS}
 	source
         .
@@ -60,7 +56,7 @@ add_definitions(
 	-D_CRT_SECURE_NO_WARNINGS
 )
 
-add_executable(lab 
+add_executable(lab
 	source/main.cpp
         source/Camera.cpp
         source/LightningTechnique.cpp
