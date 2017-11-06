@@ -73,24 +73,24 @@ int main(void)
     glDepthFunc(GL_LESS);
 
     // Cull triangles which normal is not towards the camera
-    glEnable(GL_CULL_FACE);
+    glCullFace(GL_CCW);
 
     auto camera = Camera::get_camera(window);
 
     Object home;
     home.init();
 
-    // Object home2;
-    // home2.init();
+    Object home2;
+    home2.init();
 
     DirectionLight light_direction;
     light_direction.color = Vector3f(1.0f, 1.0f, 1.0f);
     light_direction.ambient_intensity = 0.3f;
     light_direction.diffuse_intensity = 0.9f;
-    light_direction.direction = Vector3f(1.0f, 0.0f, 0.0f);
-                
+    light_direction.direction = Vector3f(0.5f, 0.0f, 0.5f);
+
     Texture home_texture(GL_TEXTURE_2D, "models/basic_home/tex_woodlands_main.jpg");
-    //Texture home_texture2(GL_TEXTURE_2D, "models/basic_home/tex_woodlands_main_s.jpg");
+    Texture home_texture2(GL_TEXTURE_2D, "models/basic_home/tex_woodlands_main_s.jpg");
 
     do {
         // Clear the screen
@@ -106,13 +106,22 @@ int main(void)
         p.SetPerspectiveProj(60.0f, 1920, 1080, 0.1f, 500.0f);
 
         home_texture.bind(GL_TEXTURE0);
-        home.set_texture_unit(0); 
+        home.set_texture_unit(0);
         home.set_wvp(p.GetWVPTrans());
         home.set_world_matrix(p.GetWorldTrans());
         home.set_directional_light(light_direction);
         home.enable();
         home.render();
-         
+
+        p.WorldPos(0.0f, 0.0f, 60.0f);
+        home_texture2.bind(GL_TEXTURE1);
+        home2.set_texture_unit(1);
+        home2.set_wvp(p.GetWVPTrans());
+        home2.set_world_matrix(p.GetWorldTrans());
+        home2.set_directional_light(light_direction);
+        home2.enable();
+        home2.render();
+
         // Swap buffers
         glfwSwapBuffers(window);
         glfwPollEvents();

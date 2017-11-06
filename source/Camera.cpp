@@ -67,19 +67,19 @@ void Camera::handle_keyboard_i(int key, int action)
     }
 
     switch (key) {
-    case GLFW_KEY_UP:
+    case GLFW_KEY_W:
         m_position += (m_target * m_move_speed);
         break;
-    case GLFW_KEY_DOWN:
+    case GLFW_KEY_S:
         m_position -= (m_target * m_move_speed);
         break;
-    case GLFW_KEY_RIGHT: {
+    case GLFW_KEY_D: {
         Vector3f Right = m_up.Cross(m_target);
         Right.Normalize();
         Right *= m_move_speed;
         m_position += Right;
     } break;
-    case GLFW_KEY_LEFT: {
+    case GLFW_KEY_A: {
         Vector3f Left = m_target.Cross(m_up);
         Left.Normalize();
         Left *= m_move_speed;
