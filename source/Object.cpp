@@ -1,6 +1,15 @@
 #include "Object.h"
 #include "objloader.h"
 
+Object::Object(const std::string & object_filename,
+               Texture & texture,
+               GLuint texture_index)
+    : m_object_filename(object_filename)
+    , m_texture(texture)
+    , m_texture_index(texture_index)
+{
+}
+
 Object::~Object()
 {
     glDeleteBuffers(1, &m_vertexbuffer);
@@ -20,7 +29,7 @@ bool Object::init()
     glBindVertexArray(m_vertex_array_id);
 
     // Read our .obj file
-    bool res = loadOBJ("models/basic_home/cabin01.obj", m_vertices, m_uvs, m_normals);
+    bool res = loadOBJ(m_object_filename.c_str(), m_vertices, m_uvs, m_normals);
     if (!res) {
         return res;
     }
@@ -37,11 +46,15 @@ bool Object::init()
     glBindBuffer(GL_ARRAY_BUFFER, m_normalbuffer);
     glBufferData(GL_ARRAY_BUFFER, m_normals.size() * sizeof(glm::vec3), &m_normals[0], GL_STATIC_DRAW);
 
+    glUniform1i(m_sampler_location, m_texture_index);
+
     return true;
 }
 
 void Object::render()
 {
+    m_texture.bind(GL_TEXTURE0 + m_texture_index);
+    enable();
     // 1rst attribute buffer : vertices
     glEnableVertexAttribArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, m_vertexbuffer);

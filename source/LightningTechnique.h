@@ -23,7 +23,6 @@ public:
 
     void set_wvp(const glm::mat4 & wvp);
     void set_world_matrix(const glm::mat4 & wvp);
-    void set_texture_unit(unsigned int texture_unit);
     void set_directional_light(const DirectionLight & light);
 
 private:

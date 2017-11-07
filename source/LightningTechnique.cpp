@@ -110,11 +110,6 @@ void LightingTechnique::set_world_matrix(const glm::mat4 & wvp)
     glUniformMatrix4fv(m_world_matrix_location, 1, GL_TRUE, &wvp[0][0]);
 }
 
-void LightingTechnique::set_texture_unit(unsigned int texture_unit)
-{
-    glUniform1i(m_sampler_location, texture_unit);
-}
-
 void LightingTechnique::set_directional_light(const DirectionLight & light)
 {
     glUniform3f(m_direction_light_location.color, light.color.x, light.color.y, light.color.z);

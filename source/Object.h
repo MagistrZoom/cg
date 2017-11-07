@@ -1,6 +1,7 @@
 #pragma once
 
 #include "LightningTechnique.h"
+#include "Texture.h"
 
 // Include GLM
 #include <glm/glm.hpp>
@@ -10,15 +11,22 @@
 class Object : public LightingTechnique
 {
 public:
-    Object() = default;
+    Object(const std::string & object_filename,
+           Texture & texture,
+           GLuint texture_index);
     ~Object();
+
     bool init() override;
 
-    /* Technique::enable must be called before render */
     void render();
 
 private:
     using super = LightingTechnique;
+
+    std::string m_object_filename;
+    Texture & m_texture;
+    GLuint m_texture_index;
+
     GLuint m_mvp_location;
     GLuint m_sampler_location;
 
