@@ -67,8 +67,8 @@ void main()                                                                     
         vec3 VertexToCamera = normalize(gCameraPosition - WorldPos0);                \n\
         vec3 LightReflect = normalize(reflect(gDirectionalLight.direction, Normal)); \n\
         float SpecularFactor = dot(VertexToCamera, LightReflect);                    \n\
-        SpecularFactor = pow(SpecularFactor, gMatSpecularPower);                     \n\
         if (SpecularFactor > 0) {                                                    \n\
+            SpecularFactor = pow(SpecularFactor, gMatSpecularPower);                 \n\
             SpecularColor = vec4(gDirectionalLight.color, 1.0f) *                    \n\
                 gMatSpecularIntensity * SpecularFactor;                              \n\
         }                                                                            \n\
@@ -117,7 +117,10 @@ bool LightingTechnique::init()
         m_sampler_location == 0xFFFFFFFF ||
         m_direction_light_location.color == 0xFFFFFFFF ||
         m_direction_light_location.diffuse_intensity == 0xFFFFFFFF ||
-        m_direction_light_location.direction == 0xFFFFFFFF) {
+        m_direction_light_location.direction == 0xFFFFFFFF ||
+        m_camera_position_location == 0xFFFFFFFF ||
+        m_mat_specular_intensity_location == 0xFFFFFFFF ||
+        m_mat_specular_power_location == 0xFFFFFFFF ) {
         return false;
     }
 
@@ -126,12 +129,12 @@ bool LightingTechnique::init()
 
 void LightingTechnique::set_wvp(const glm::mat4 & wvp)
 {
-    glUniformMatrix4fv(m_wvp_location, 1, GL_TRUE, &wvp[0][0]);
+    glUniformMatrix4fv(m_wvp_location, 1, GL_FALSE, &wvp[0][0]);
 }
 
 void LightingTechnique::set_world_matrix(const glm::mat4 & wvp)
 {
-    glUniformMatrix4fv(m_world_matrix_location, 1, GL_TRUE, &wvp[0][0]);
+    glUniformMatrix4fv(m_world_matrix_location, 1, GL_FALSE, &wvp[0][0]);
 }
 
 void LightingTechnique::set_directional_light(const DirectionLight & light)
