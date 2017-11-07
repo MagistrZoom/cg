@@ -103,8 +103,7 @@ int main(void)
         home.set_directional_light(light_direction);
         home.set_camera_position(position);
         home.set_specular_intensity(1.0f);
-        home.set_specular_power(32.0f);
-  
+        home.set_specular_power(1.0f);
         home.render();
 
         // Swap buffers
