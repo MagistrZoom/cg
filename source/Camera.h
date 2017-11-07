@@ -11,7 +11,6 @@
 // Calculates camera position, perspective etc.
 // handles peripherial devices
 //
-// Need to divide this monster into operator and camera entities
 
 class Camera
 {
@@ -24,7 +23,7 @@ protected:
            float horizontal_angle = M_PI, // radians
            float vertical_angle = 0.0f,   // radians
            float field_of_view = 45.0f,   // degrees
-           float move_speed = 0.5f,      // units per press
+           float move_speed = 1.0f,      // units per press
            float mouse_speed = 0.005f);
 
 public:

@@ -81,9 +81,9 @@ int main(void)
 
     DirectionLight light_direction;
     light_direction.color = glm::vec3(1.0f, 1.0f, 1.0f);
-    light_direction.ambient_intensity = 0.3f;
-    light_direction.diffuse_intensity = 0.9f;
-    light_direction.direction = glm::vec3(0.5f, 0.0f, 0.5f);
+    light_direction.ambient_intensity = 0.0f;
+    light_direction.diffuse_intensity = 0.75f;
+    light_direction.direction = glm::normalize(glm::vec3(0.5f, -0.5f, 0.0f));
 
     do {
         // Clear the screen
@@ -94,13 +94,17 @@ int main(void)
         const auto & up = camera->get_up();
 
         Pipeline p;
-        p.world_position(0.0f, 0.0f, 1.0f);
+        p.world_position(0.0f, 0.0f, 0.0f);
         p.set_camera(position, target, up);
         p.set_perspective(45.0f, 1920, 1080, 0.1f, 500.0f);
 
         home.set_wvp(glm::transpose(p.get_wvp()));
         home.set_world_matrix(glm::transpose(p.get_world()));
         home.set_directional_light(light_direction);
+        home.set_camera_position(position);
+        home.set_specular_intensity(1.0f);
+        home.set_specular_power(32.0f);
+  
         home.render();
 
         // Swap buffers
