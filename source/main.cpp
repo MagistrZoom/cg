@@ -63,7 +63,7 @@ int main(void)
     glfwSetCursorPos(window, 1920 / 2, 1080 / 2);
 
     // Dark black background
-    glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
+    glClearColor(0.376f, 0.235f, 0.149f, 0.0f);
 
     // Enable depth test
     glEnable(GL_DEPTH_TEST);
