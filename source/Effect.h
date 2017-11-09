@@ -3,11 +3,11 @@
 #include <GL/glew.h>
 #include <vector>
 
-class Technique
+class Effect
 {
 public:
-    Technique() = default;
-    virtual ~Technique();
+    Effect() = default;
+    virtual ~Effect();
     virtual bool init();
     void enable();
 

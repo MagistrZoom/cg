@@ -1,4 +1,4 @@
-#include "LightningTechnique.h"
+#include "LightningEffect.h"
 
 static const char * pVS = "                                                          \n\
 #version 330                                                                         \n\
@@ -78,9 +78,9 @@ void main()                                                                     
                 (AmbientColor + DiffuseColor + SpecularColor);                       \n\
 }";
 
-bool LightingTechnique::init()
+bool LightingEffect::init()
 {
-    if (!Technique::init()) {
+    if (!Effect::init()) {
         return false;
     }
 
@@ -127,17 +127,17 @@ bool LightingTechnique::init()
     return true;
 }
 
-void LightingTechnique::set_wvp(const glm::mat4 & wvp)
+void LightingEffect::set_wvp(const glm::mat4 & wvp)
 {
     glUniformMatrix4fv(m_wvp_location, 1, GL_FALSE, &wvp[0][0]);
 }
 
-void LightingTechnique::set_world_matrix(const glm::mat4 & wvp)
+void LightingEffect::set_world_matrix(const glm::mat4 & wvp)
 {
     glUniformMatrix4fv(m_world_matrix_location, 1, GL_FALSE, &wvp[0][0]);
 }
 
-void LightingTechnique::set_directional_light(const DirectionLight & light)
+void LightingEffect::set_directional_light(const DirectionLight & light)
 {
     glUniform3f(m_direction_light_location.color, light.color.x, light.color.y, light.color.z);
     glUniform1f(m_direction_light_location.ambient_intensity, light.ambient_intensity);
@@ -147,19 +147,19 @@ void LightingTechnique::set_directional_light(const DirectionLight & light)
 }
 
 
-void LightingTechnique::set_camera_position(const glm::vec3 & pos)
+void LightingEffect::set_camera_position(const glm::vec3 & pos)
 {
     glUniform3f(m_camera_position_location, pos.x, pos.y, pos.z);
 }
 
 
-void LightingTechnique::set_specular_intensity(float instensity)
+void LightingEffect::set_specular_intensity(float instensity)
 {
     glUniform1f(m_mat_specular_intensity_location, instensity);
 }
 
 
-void LightingTechnique::set_specular_power(float power)
+void LightingEffect::set_specular_power(float power)
 {
     glUniform1f(m_mat_specular_power_location, power);
 }

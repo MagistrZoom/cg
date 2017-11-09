@@ -1,11 +1,11 @@
-#include "Technique.h"
+#include "Effect.h"
 
 #include <assert.h>
 #include <iostream>
 #include <stdio.h>
 #include <string.h>
 
-Technique::~Technique()
+Effect::~Effect()
 {
     for (const auto & shader_id : m_shader_obj_list) {
         glDeleteShader(shader_id);
@@ -15,7 +15,7 @@ Technique::~Technique()
     }
 }
 
-bool Technique::init()
+bool Effect::init()
 {
     m_shader_prog = glCreateProgram();
     if (m_shader_prog == 0) {
@@ -26,7 +26,7 @@ bool Technique::init()
     return true;
 }
 
-bool Technique::add_shader(GLenum shader_type, const char * shader_code)
+bool Effect::add_shader(GLenum shader_type, const char * shader_code)
 {
     GLuint shader_obj = glCreateShader(shader_type);
 
@@ -58,7 +58,7 @@ bool Technique::add_shader(GLenum shader_type, const char * shader_code)
     return true;
 }
 
-bool Technique::finalize()
+bool Effect::finalize()
 {
     GLint success = 0;
     GLchar ErrorLog[1024] = {0};
@@ -88,12 +88,12 @@ bool Technique::finalize()
     return true;
 }
 
-void Technique::enable()
+void Effect::enable()
 {
     glUseProgram(m_shader_prog);
 }
 
-GLint Technique::get_uniform_location(const char * uniform_name)
+GLint Effect::get_uniform_location(const char * uniform_name)
 {
     GLint location = glGetUniformLocation(m_shader_prog, uniform_name);
 

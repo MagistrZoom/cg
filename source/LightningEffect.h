@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Technique.h"
+#include "Effect.h"
 
 // Include GLM
 #include <glm/glm.hpp>
@@ -15,10 +15,10 @@ struct DirectionLight
     float diffuse_intensity;
 };
 
-class LightingTechnique : public Technique
+class LightingEffect : public Effect
 {
 public:
-    LightingTechnique() = default;
+    LightingEffect() = default;
     bool init() override;
 
     void set_wvp(const glm::mat4 & wvp);

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "LightningTechnique.h"
+#include "LightningEffect.h"
 #include "Texture.h"
 
 // Include GLM
@@ -8,7 +8,7 @@
 
 #include <memory>
 
-class Object : public LightingTechnique
+class Object : public LightingEffect
 {
 public:
     Object(const std::string & object_filename,
@@ -21,7 +21,7 @@ public:
     void render();
 
 private:
-    using super = LightingTechnique;
+    using super = LightingEffect;
 
     std::string m_object_filename;
     Texture & m_texture;
