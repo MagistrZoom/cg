@@ -79,12 +79,31 @@ int main(void)
     Object home("models/basic_home/cabin01.obj", home_texture, 0);
     home.init();
 
-    DirectionLight light_direction;
+    DirectionalLight light_direction;
     light_direction.color = glm::vec3(1.0f, 1.0f, 1.0f);
-    light_direction.ambient_intensity = 0.2f;
-    light_direction.diffuse_intensity = 0.75f;
+    light_direction.ambient_intensity = 0.0f;
+    light_direction.diffuse_intensity = 0.0f;
     light_direction.direction = glm::vec3(0.5f, 0.0f, 0.5f);
 
+    std::vector<PointLight> pl;
+    PointLight p;
+    pl.emplace_back(p);
+    pl.emplace_back(p);
+    pl.emplace_back(p);
+    pl[0].diffuse_intensity = 0.5f;
+    pl[0].color = glm::vec3(1.0f, 1.0f, 1.0f);
+    pl[0].attentuation.linear = 0.1f;
+
+    pl[1].diffuse_intensity = 0.5f;
+    pl[1].color = glm::vec3(1.0f, 1.0f, 1.0f);
+    pl[1].attentuation.linear = 0.1f;
+
+    pl[2].diffuse_intensity = 0.5f;
+    pl[2].color = glm::vec3(1.0f, 1.0f, 1.0f);
+    pl[2].attentuation.linear = 0.1f;
+
+
+    float scale = 0.0f;
     do {
         // Clear the screen
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -92,6 +111,12 @@ int main(void)
         const auto & position = camera->get_position();
         const auto & target = camera->get_target();
         const auto & up = camera->get_up();
+
+        pl[0].position = glm::vec3(sinf(scale)*30, 5.0f, cosf(scale)*30);
+        pl[1].position = glm::vec3(sinf(scale+2.1f)*30, 15.0f, cosf(scale+2.1f)*30);
+        pl[2].position = glm::vec3(sinf(scale+4.2f)*30, 10.0f, cosf(scale+4.2f)*30);
+
+        scale += 0.1f;
 
         Pipeline p;
         p.world_position(0.0f, 0.0f, 0.0f);
@@ -104,6 +129,7 @@ int main(void)
         home.set_camera_position(position);
         home.set_specular_intensity(1.0f);
         home.set_specular_power(4.0f);
+        home.set_point_lights(pl);
         home.render();
 
         // Swap buffers

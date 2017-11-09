@@ -59,10 +59,10 @@ add_definitions(
 add_executable(lab
 	source/main.cpp
         source/Camera.cpp
-        source/LightningTechnique.cpp
+        source/LightningEffect.cpp
         source/Object.cpp
         source/pipeline.cpp
-        source/Technique.cpp
+        source/Effect.cpp
         source/Texture.cpp
 
         source/objloader.cpp
