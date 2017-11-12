@@ -82,8 +82,12 @@ int main(void)
      * Object stuff
      */
     Texture home_texture(GL_TEXTURE_2D, "models/basic_home/tex_woodlands_main.jpg");
-    Object home("models/basic_home/cabin01.obj", 0);
+    Object home("models/basic_home/cabin01.obj");
     assert(home.init());
+
+    Texture quad_texture(GL_TEXTURE_2D, "models/quad/test.png");
+    Object surface("models/quad/quad.obj");
+    assert(surface.init());
 
     /*
      * Light stuff
@@ -94,8 +98,8 @@ int main(void)
     DirectionalLight light_direction;
     light_direction.color = glm::vec3(1.0f, 1.0f, 1.0f);
     light_direction.ambient_intensity = 0.0f;
-    light_direction.diffuse_intensity = 0.0f;
-    light_direction.direction = glm::vec3(0.5f, 0.0f, 0.5f);
+    light_direction.diffuse_intensity = 0.5f;
+    light_direction.direction = glm::vec3(-0.5f, 0.2f, -0.5f);
 
     std::vector<PointLight> pl;
     PointLight p;
@@ -112,12 +116,12 @@ int main(void)
     assert(shadow_map_fbo.init(1920, 1080));
     ShadowMapEffect shadow_map;
     assert(shadow_map.init());
-    shadow_map.set_texture_unit(1);
-    lightning_effect.set_shadow_map_texture(1);
+    shadow_map.set_texture_unit(2);
+    lightning_effect.set_shadow_map_texture(2);
 
     do {
         Pipeline p;
-        p.world_position(0.0f, 0.0f, 0.0f);
+        p.world_position(0.0f, 5.0f, 0.0f);
         p.set_camera(pl[0].position, glm::vec3(-1.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f));
         p.set_perspective(45.0f, 1920, 1080, 0.1f, 500.0f);
 
@@ -137,8 +141,7 @@ int main(void)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         lightning_effect.enable();
-        home_texture.bind(GL_TEXTURE0);
-        shadow_map_fbo.read_bind(GL_TEXTURE1);
+        shadow_map_fbo.read_bind(GL_TEXTURE2);
 
         const auto & position = camera->get_position();
         const auto & target = camera->get_target();
@@ -155,7 +158,28 @@ int main(void)
         lightning_effect.set_specular_power(4.0f);
         lightning_effect.set_point_lights(pl);
         lightning_effect.set_texture_unit(0);
+
+        home_texture.bind(GL_TEXTURE0);
         home.render();
+
+        p.rotate(M_PI/2, glm::vec3(1.0f, 0.0f, 0.0f));
+        p.scale(45.0f, 45.0f, 45.0f);
+        p.world_position(0.0f, 0.0f, 0.0f);
+        p.set_camera(position, target, up);
+        lightning_effect.set_wvp(p.get_wvp());
+        lightning_effect.set_world_matrix(p.get_world());
+        lightning_effect.set_camera_position(position);
+        p.set_camera(pl[0].position, glm::vec3(-1.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+        lightning_effect.set_light_wvp(p.get_wvp());
+        lightning_effect.set_directional_light(light_direction);
+        lightning_effect.set_specular_intensity(1.0f);
+        lightning_effect.set_specular_power(4.0f);
+        lightning_effect.set_point_lights(pl);
+        lightning_effect.set_texture_unit(1);
+
+        quad_texture.bind(GL_TEXTURE1);
+        surface.render();
+
 
         // Swap buffers
         glfwSwapBuffers(window);

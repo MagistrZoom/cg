@@ -1,10 +1,8 @@
 #include "Object.h"
 #include "objloader.h"
 
-Object::Object(const std::string & object_filename,
-               GLuint texture_index)
+Object::Object(const std::string & object_filename)
     : m_object_filename(object_filename)
-    , m_texture_index(texture_index)
 {
 }
 

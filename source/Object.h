@@ -9,8 +9,7 @@
 class Object
 {
 public:
-    Object(const std::string & object_filename,
-           GLuint texture_index);
+    Object(const std::string & object_filename);
     ~Object();
 
     bool init();
