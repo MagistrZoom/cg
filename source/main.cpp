@@ -3,6 +3,7 @@
 #include "pipeline.h"
 #include "ShadowMapEffect.h"
 #include "ShadowMapFBO.h"
+#include "LightningEffect.h"
 
 // Include GLEW
 #include <GL/glew.h>
@@ -81,12 +82,15 @@ int main(void)
      * Object stuff
      */
     Texture home_texture(GL_TEXTURE_2D, "models/basic_home/tex_woodlands_main.jpg");
-    Object home("models/basic_home/cabin01.obj", home_texture, 0);
-    home.init();
+    Object home("models/basic_home/cabin01.obj", 0);
+    assert(home.init());
 
     /*
      * Light stuff
      */
+
+    LightingEffect lightning_effect; 
+    assert(lightning_effect.init());
     DirectionalLight light_direction;
     light_direction.color = glm::vec3(1.0f, 1.0f, 1.0f);
     light_direction.ambient_intensity = 0.0f;
@@ -105,9 +109,11 @@ int main(void)
      * Shadow stuff
      */
     ShadowMapFBO shadow_map_fbo;
-    shadow_map_fbo.init(1920, 1080);
+    assert(shadow_map_fbo.init(1920, 1080));
     ShadowMapEffect shadow_map;
-    shadow_map.init();
+    assert(shadow_map.init());
+    shadow_map.set_texture_unit(1);
+    lightning_effect.set_shadow_map_texture(1);
 
     do {
         Pipeline p;
@@ -129,23 +135,26 @@ int main(void)
 
         // Clear the screen
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	
-	home.enable();
-        shadow_map.set_texture_unit(1);
-        shadow_map_fbo.read_bind(GL_TEXTURE0 + 1);
+
+        lightning_effect.enable();
+        home_texture.bind(GL_TEXTURE0);
+        shadow_map_fbo.read_bind(GL_TEXTURE1);
 
         const auto & position = camera->get_position();
         const auto & target = camera->get_target();
         const auto & up = camera->get_up();
 
         p.set_camera(position, target, up);
-        home.set_wvp(p.get_wvp());
-        home.set_world_matrix(p.get_world());
-   	home.set_camera_position(position);
-	home.set_directional_light(light_direction);
-        home.set_specular_intensity(1.0f);
-        home.set_specular_power(4.0f);
-        home.set_point_lights(pl);
+        lightning_effect.set_wvp(p.get_wvp());
+        lightning_effect.set_world_matrix(p.get_world());
+        lightning_effect.set_camera_position(position);
+        p.set_camera(pl[0].position, glm::vec3(-1.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+        lightning_effect.set_light_wvp(p.get_wvp());
+        lightning_effect.set_directional_light(light_direction);
+        lightning_effect.set_specular_intensity(1.0f);
+        lightning_effect.set_specular_power(4.0f);
+        lightning_effect.set_point_lights(pl);
+        lightning_effect.set_texture_unit(0);
         home.render();
 
         // Swap buffers

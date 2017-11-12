@@ -180,6 +180,9 @@ bool LightingEffect::init()
 
     m_num_point_location = get_uniform_location("gNumPointLights");
 
+    m_light_wvp_location = get_uniform_location("gLightWVP");
+    m_shadow_map_location = get_uniform_location("gShadowMap");
+
     for (unsigned int i = 0 ; i < sizeof(m_point_lights_location)/sizeof(m_point_lights_location[0]) ; i++) {
         char Name[128] = { 0 };
         // TODO: WTF???
@@ -225,6 +228,9 @@ bool LightingEffect::init()
         m_direction_light_location.direction == invalid_uniform_location ||
         m_camera_position_location == invalid_uniform_location ||
         m_mat_specular_intensity_location == invalid_uniform_location ||
+        m_num_point_location == invalid_uniform_location ||
+        m_shadow_map_location == invalid_uniform_location ||
+        m_light_wvp_location == invalid_uniform_location ||
         m_mat_specular_power_location == invalid_uniform_location) {
         return false;
     }
@@ -282,7 +288,17 @@ void LightingEffect::set_point_lights(const std::vector<PointLight> & lights)
     }
 }
 
+void LightingEffect::set_texture_unit(unsigned int texture_unit)
+{
+    glUniform1i(m_sampler_location, texture_unit);
+}
+
 void LightingEffect::set_shadow_map_texture(unsigned int texture_unit)
 {
+    glUniform1i(m_shadow_map_location, texture_unit);
+}
 
+void LightingEffect::set_light_wvp(const glm::mat4 & wvp)
+{
+    glUniformMatrix4fv(m_light_wvp_location, 1, GL_FALSE, &wvp[0][0]);
 }

@@ -6,17 +6,14 @@
 // Include GLM
 #include <glm/glm.hpp>
 
-#include <memory>
-
-class Object : public LightingEffect
+class Object
 {
 public:
     Object(const std::string & object_filename,
-           Texture & texture,
            GLuint texture_index);
     ~Object();
 
-    bool init() override;
+    bool init();
 
     void render();
 
@@ -24,11 +21,7 @@ private:
     using super = LightingEffect;
 
     std::string m_object_filename;
-    Texture & m_texture;
     GLuint m_texture_index;
-
-    GLuint m_mvp_location;
-    GLuint m_sampler_location;
 
     GLuint m_vertex_array_id;
 

@@ -2,10 +2,8 @@
 #include "objloader.h"
 
 Object::Object(const std::string & object_filename,
-               Texture & texture,
                GLuint texture_index)
     : m_object_filename(object_filename)
-    , m_texture(texture)
     , m_texture_index(texture_index)
 {
 }
@@ -21,10 +19,6 @@ Object::~Object()
 
 bool Object::init()
 {
-    if (!super::init()) {
-        return false;
-    }
-
     glGenVertexArrays(1, &m_vertex_array_id);
     glBindVertexArray(m_vertex_array_id);
 
@@ -46,15 +40,11 @@ bool Object::init()
     glBindBuffer(GL_ARRAY_BUFFER, m_normalbuffer);
     glBufferData(GL_ARRAY_BUFFER, m_normals.size() * sizeof(glm::vec3), &m_normals[0], GL_STATIC_DRAW);
 
-    glUniform1i(m_sampler_location, m_texture_index);
-
     return true;
 }
 
 void Object::render()
 {
-    m_texture.bind(GL_TEXTURE0 + m_texture_index);
-    enable();
     // 1rst attribute buffer : vertices
     glEnableVertexAttribArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, m_vertexbuffer);
