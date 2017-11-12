@@ -60,6 +60,8 @@ add_executable(lab
 	source/main.cpp
         source/Camera.cpp
         source/LightningEffect.cpp
+        source/ShadowMapEffect.cpp
+        source/ShadowMapFBO.cpp
         source/Object.cpp
         source/pipeline.cpp
         source/Effect.cpp

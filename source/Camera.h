@@ -16,11 +16,11 @@ class Camera
 {
 protected:
     Camera(GLFWwindow * window,
-           glm::vec3 position = glm::vec3(-80.0f, 40.0f, 0.0f),
-           glm::vec3 target = glm::vec3(1.0f, 0.0f, 0.0f),
-           glm::vec3 up = glm::vec3(0.5f, 0.5f, 0.0f),
+           glm::vec3 position = glm::vec3(80.0f, 40.0f, 0.0f),
+           glm::vec3 target = glm::vec3(-1.0f, 0.0f, 0.0f),
+           glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f),
            float range_view = 500.0f,
-           float horizontal_angle = 0, // radians
+           float horizontal_angle = M_PI, // radians
            float vertical_angle = 0.0f,   // radians
            float field_of_view = 45.0f,   // degrees
            float move_speed = 1.0f,      // units per press

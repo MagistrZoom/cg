@@ -1,6 +1,8 @@
 #include "Object.h"
 #include "Camera.h"
 #include "pipeline.h"
+#include "ShadowMapEffect.h"
+#include "ShadowMapFBO.h"
 
 // Include GLEW
 #include <GL/glew.h>
@@ -75,10 +77,16 @@ int main(void)
 
     auto camera = Camera::get_camera(window);
 
+    /*
+     * Object stuff
+     */
     Texture home_texture(GL_TEXTURE_2D, "models/basic_home/tex_woodlands_main.jpg");
     Object home("models/basic_home/cabin01.obj", home_texture, 0);
     home.init();
 
+    /*
+     * Light stuff
+     */
     DirectionalLight light_direction;
     light_direction.color = glm::vec3(1.0f, 1.0f, 1.0f);
     light_direction.ambient_intensity = 0.0f;
@@ -88,45 +96,53 @@ int main(void)
     std::vector<PointLight> pl;
     PointLight p;
     pl.emplace_back(p);
-    pl.emplace_back(p);
-    pl.emplace_back(p);
-    pl[0].diffuse_intensity = 0.5f;
+    pl[0].diffuse_intensity = 1.0f;
     pl[0].color = glm::vec3(1.0f, 1.0f, 1.0f);
     pl[0].attentuation.linear = 0.1f;
+    pl[0].position = glm::vec3(-20.0f, 5.0f, -20.0f);
 
-    pl[1].diffuse_intensity = 0.5f;
-    pl[1].color = glm::vec3(1.0f, 1.0f, 1.0f);
-    pl[1].attentuation.linear = 0.1f;
+    /*
+     * Shadow stuff
+     */
+    ShadowMapFBO shadow_map_fbo;
+    shadow_map_fbo.init(1920, 1080);
+    ShadowMapEffect shadow_map;
+    shadow_map.init();
 
-    pl[2].diffuse_intensity = 0.5f;
-    pl[2].color = glm::vec3(1.0f, 1.0f, 1.0f);
-    pl[2].attentuation.linear = 0.1f;
-
-
-    float scale = 0.0f;
     do {
+        Pipeline p;
+        p.world_position(0.0f, 0.0f, 0.0f);
+        p.set_camera(pl[0].position, glm::vec3(-1.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+        p.set_perspective(45.0f, 1920, 1080, 0.1f, 500.0f);
+
+        /* 1 step - make shadow */
+        shadow_map_fbo.write_bind();
+        glClear(GL_DEPTH_BUFFER_BIT);
+        shadow_map.enable();
+
+        shadow_map.set_wvp(p.get_wvp());
+        home.render();
+
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+        /* 2 step - make shadow */
+
         // Clear the screen
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	
+	home.enable();
+        shadow_map.set_texture_unit(1);
+        shadow_map_fbo.read_bind(GL_TEXTURE0 + 1);
 
         const auto & position = camera->get_position();
         const auto & target = camera->get_target();
         const auto & up = camera->get_up();
 
-        pl[0].position = glm::vec3(sinf(scale)*30, 5.0f, cosf(scale)*30);
-        pl[1].position = glm::vec3(sinf(scale+2.1f)*30, 15.0f, cosf(scale+2.1f)*30);
-        pl[2].position = glm::vec3(sinf(scale+4.2f)*30, 10.0f, cosf(scale+4.2f)*30);
-
-        scale += 0.1f;
-
-        Pipeline p;
-        p.world_position(0.0f, 0.0f, 0.0f);
         p.set_camera(position, target, up);
-        p.set_perspective(45.0f, 1920, 1080, 0.1f, 500.0f);
-
         home.set_wvp(p.get_wvp());
         home.set_world_matrix(p.get_world());
-        home.set_directional_light(light_direction);
-        home.set_camera_position(position);
+   	home.set_camera_position(position);
+	home.set_directional_light(light_direction);
         home.set_specular_intensity(1.0f);
         home.set_specular_power(4.0f);
         home.set_point_lights(pl);

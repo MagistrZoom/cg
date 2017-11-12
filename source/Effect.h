@@ -3,6 +3,8 @@
 #include <GL/glew.h>
 #include <vector>
 
+constexpr GLuint invalid_uniform_location = 0xFFFFFFFF;
+
 class Effect
 {
 public:

@@ -68,6 +68,8 @@ public:
 
     void set_point_lights(const std::vector<PointLight> & lights);
 
+    void set_shadow_map_texture(unsigned int texture_unit);
+
 private:
     GLuint m_wvp_location;
     GLuint m_world_matrix_location;
@@ -76,6 +78,8 @@ private:
     GLuint m_camera_position_location;
     GLuint m_mat_specular_intensity_location;
     GLuint m_mat_specular_power_location;
+
+    GLuint m_shadow_map_texture;
 
     struct
     {

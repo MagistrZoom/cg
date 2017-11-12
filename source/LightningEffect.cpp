@@ -9,16 +9,19 @@ layout (location = 1) in vec2 TexCoord;                                         
 layout (location = 2) in vec3 Normal;                                                \n\
                                                                                      \n\
 uniform mat4 gWVP;                                                                   \n\
+uniform mat4 gLightWVP;                                                              \n\
 uniform mat4 gWorld;                                                                 \n\
                                                                                      \n\
 out vec2 UV;                                                                         \n\
 out vec3 Normal0;                                                                    \n\
 out vec3 WorldPos0;                                                                  \n\
+out vec4 LightSpacePos;                                                              \n\
                                                                                      \n\
 void main()                                                                          \n\
 {                                                                                    \n\
     gl_Position = gWVP * vec4(Position, 1.0);                                        \n\
     UV = TexCoord;                                                                   \n\
+    LightSpacePos = gLightWVP * vec4(Position, 1.0);                                 \n\
     Normal0 = (gWorld * vec4(Normal, 0.0)).xyz;                                      \n\
     WorldPos0 = (gWorld * vec4(Position, 1.0)).xyz;                                  \n\
 }";
@@ -31,6 +34,7 @@ const int MAX_POINT_LIGHTS = 3;                                                 
 in vec2 UV;                                                                         \n\
 in vec3 Normal0;                                                                    \n\
 in vec3 WorldPos0;                                                                  \n\
+in vec4 LightSpacePos;                                                              \n\
                                                                                     \n\
 out vec4 FragColor;                                                                 \n\
                                                                                     \n\
@@ -63,6 +67,7 @@ struct PointLight                                                               
                                                                                     \n\
 uniform DirectionalLight gDirectionalLight;                                         \n\
 uniform sampler2D gSampler;                                                         \n\
+uniform sampler2D gShadowMap;                                                       \n\
                                                                                     \n\
 uniform vec3 gCameraPosition;                                                       \n\
 uniform float gMatSpecularIntensity;                                                \n\
@@ -70,58 +75,74 @@ uniform float gMatSpecularPower;                                                
 uniform PointLight gPointLights[MAX_POINT_LIGHTS];                                  \n\
 uniform int gNumPointLights;                                                        \n\
                                                                                     \n\
-vec4 CalcLightInternal(BaseLight light, vec3 light_direction, vec3 Normal)          \n\
-{                                                                                           \n\
-    vec4 AmbientColor = vec4(light.color, 1.0) * light.ambient_intensity;                   \n\
-    float DiffuseFactor = dot(Normal, -light_direction);                                    \n\
-                                                                                            \n\
-    vec4 DiffuseColor  = vec4(0, 0, 0, 0);                                                  \n\
-    vec4 SpecularColor = vec4(0, 0, 0, 0);                                                  \n\
-                                                                                            \n\
-    if (DiffuseFactor > 0) {                                                                \n\
-        DiffuseColor = vec4(light.color, 1.0) * light.diffuse_intensity * DiffuseFactor;    \n\
-        vec3 VertexToEye = normalize(gCameraPosition - WorldPos0);                          \n\
-        vec3 LightReflect = normalize(reflect(light_direction, Normal));                    \n\
-        float SpecularFactor = dot(VertexToEye, LightReflect);                              \n\
-        if (SpecularFactor > 0 && light.diffuse_intensity > 0) {                            \n\
-            SpecularFactor = pow(SpecularFactor, gMatSpecularPower);                        \n\
-            SpecularColor = vec4(light.color, 1.0) *                                        \n\
-                    gMatSpecularIntensity * SpecularFactor;                                 \n\
-        }                                                                                   \n\
-    }                                                                                       \n\
-                                                                                            \n\
-    return (AmbientColor + DiffuseColor + SpecularColor);                                   \n\
-}                                                                                           \n\
-                                                                                            \n\
-vec4 CalcDirectionalLight(vec3 Normal)                                                      \n\
-{                                                                                           \n\
-    return CalcLightInternal(gDirectionalLight.base, gDirectionalLight.direction, Normal);  \n\
-}                                                                                           \n\
-                                                                                            \n\
-vec4 CalcPointLight(int Index, vec3 Normal)                                                 \n\
-{                                                                                           \n\
-    vec3 light_direction = WorldPos0 - gPointLights[Index].position;                        \n\
-    float Distance = length(light_direction);                                               \n\
-    light_direction = normalize(light_direction);                                           \n\
-                                                                                            \n\
-    vec4 color = CalcLightInternal(gPointLights[Index].base, light_direction, Normal);      \n\
-    float attentuation =  gPointLights[Index].atten.constant +                               \n\
-                         gPointLights[Index].atten.linear * Distance +                      \n\
-                         gPointLights[Index].atten.exp * Distance * Distance;               \n\
-                                                                                            \n\
-    return color / attentuation;                                                             \n\
-}                                                                                           \n\
-                                                                                            \n\
-void main()                                                                                 \n\
-{                                                                                           \n\
-    vec3 Normal = normalize(Normal0);                                                       \n\
-    vec4 TotalLight = CalcDirectionalLight(Normal);                                         \n\
-                                                                                            \n\
-    for (int i = 0 ; i < gNumPointLights ; i++) {                                           \n\
-        TotalLight += CalcPointLight(i, Normal);                                            \n\
-    }                                                                                       \n\
-                                                                                            \n\
-    FragColor = texture2D(gSampler, UV) * TotalLight;                                       \n\
+float CalcShadowFactor(vec4 LightSpacePos)                                          \n\
+{                                                                                   \n\
+    vec3 ProjCoords = LightSpacePos.xyz / LightSpacePos.w;                          \n\
+    vec2 UVCoords;                                                                  \n\
+    UVCoords.x = 0.5 * ProjCoords.x + 0.5;                                          \n\
+    UVCoords.y = 0.5 * ProjCoords.y + 0.5;                                          \n\
+    float z= 0.5 * ProjCoords.z + 0.5;                                              \n\
+    float Depth = texture(gShadowMap, UVCoords).x;                                  \n\
+    if (Depth < (z + 0.00001))                                                      \n\
+        return 0.5;                                                                 \n\
+    else                                                                            \n\
+        return 1.0;                                                                 \n\
+}                                                                                   \n\
+                                                                                    \n\
+vec4 CalcLightInternal(BaseLight light, vec3 light_direction, vec3 Normal, float ShadowFactor)       \n\
+{                                                                                                    \n\
+    vec4 AmbientColor = vec4(light.color, 1.0) * light.ambient_intensity;                            \n\
+    float DiffuseFactor = dot(Normal, -light_direction);                                             \n\
+                                                                                                     \n\
+    vec4 DiffuseColor  = vec4(0, 0, 0, 0);                                                           \n\
+    vec4 SpecularColor = vec4(0, 0, 0, 0);                                                           \n\
+                                                                                                     \n\
+    if (DiffuseFactor > 0) {                                                                         \n\
+        DiffuseColor = vec4(light.color, 1.0) * light.diffuse_intensity * DiffuseFactor;             \n\
+        vec3 VertexToEye = normalize(gCameraPosition - WorldPos0);                                   \n\
+        vec3 LightReflect = normalize(reflect(light_direction, Normal));                             \n\
+        float SpecularFactor = dot(VertexToEye, LightReflect);                                       \n\
+        if (SpecularFactor > 0 && light.diffuse_intensity > 0) {                                     \n\
+            SpecularFactor = pow(SpecularFactor, gMatSpecularPower);                                 \n\
+            SpecularColor = vec4(light.color, 1.0) *                                                 \n\
+                    gMatSpecularIntensity * SpecularFactor;                                          \n\
+        }                                                                                            \n\
+    }                                                                                                \n\
+                                                                                                     \n\
+    return (AmbientColor + ShadowFactor * (DiffuseColor + SpecularColor));                           \n\
+}                                                                                                    \n\
+                                                                                                     \n\
+vec4 CalcDirectionalLight(vec3 Normal)                                                               \n\
+{                                                                                                    \n\
+    return CalcLightInternal(gDirectionalLight.base, gDirectionalLight.direction, Normal, 1.0);      \n\
+}                                                                                                    \n\
+                                                                                                     \n\
+vec4 CalcPointLight(int Index, vec3 Normal)                                                          \n\
+{                                                                                                    \n\
+    vec3 light_direction = WorldPos0 - gPointLights[Index].position;                                 \n\
+    float Distance = length(light_direction);                                                        \n\
+    light_direction = normalize(light_direction);                                                    \n\
+                                                                                                     \n\
+    float ShadowFactor = CalcShadowFactor(LightSpacePos);                                            \n\
+                                                                                                     \n\
+    vec4 color = CalcLightInternal(gPointLights[Index].base, light_direction, Normal, ShadowFactor); \n\
+    float attentuation =  gPointLights[Index].atten.constant +                                       \n\
+                         gPointLights[Index].atten.linear * Distance +                               \n\
+                         gPointLights[Index].atten.exp * Distance * Distance;                        \n\
+                                                                                                     \n\
+    return color / attentuation;                                                                     \n\
+}                                                                                                    \n\
+                                                                                                     \n\
+void main()                                                                                          \n\
+{                                                                                                    \n\
+    vec3 Normal = normalize(Normal0);                                                                \n\
+    vec4 TotalLight = CalcDirectionalLight(Normal);                                                  \n\
+                                                                                                     \n\
+    for (int i = 0 ; i < gNumPointLights ; i++) {                                                    \n\
+        TotalLight += CalcPointLight(i, Normal);                                                     \n\
+    }                                                                                                \n\
+                                                                                                     \n\
+    FragColor = texture2D(gSampler, UV) * TotalLight;                                                \n\
 }";
 
 bool LightingEffect::init()
@@ -183,28 +204,28 @@ bool LightingEffect::init()
         snprintf(Name, sizeof(Name), "gPointLights[%d].atten.exp", i);
         m_point_lights_location[i].atten.exp = get_uniform_location(Name);
 
-        if (m_point_lights_location[i].color == 0xFFFFFFFF ||
-            m_point_lights_location[i].ambient_intensity == 0xFFFFFFFF ||
-            m_point_lights_location[i].position == 0xFFFFFFFF ||
-            m_point_lights_location[i].diffuse_intensity == 0xFFFFFFFF ||
-            m_point_lights_location[i].atten.constant == 0xFFFFFFFF ||
-            m_point_lights_location[i].atten.linear == 0xFFFFFFFF ||
-            m_point_lights_location[i].atten.exp == 0xFFFFFFFF) {
+        if (m_point_lights_location[i].color == invalid_uniform_location ||
+            m_point_lights_location[i].ambient_intensity == invalid_uniform_location ||
+            m_point_lights_location[i].position == invalid_uniform_location ||
+            m_point_lights_location[i].diffuse_intensity == invalid_uniform_location ||
+            m_point_lights_location[i].atten.constant == invalid_uniform_location ||
+            m_point_lights_location[i].atten.linear == invalid_uniform_location ||
+            m_point_lights_location[i].atten.exp == invalid_uniform_location) {
             return false;
         }
     }
 
 
-    if (m_direction_light_location.ambient_intensity == 0xFFFFFFFF ||
-        m_wvp_location == 0xFFFFFFFF ||
-        m_world_matrix_location == 0xFFFFFFFF ||
-        m_sampler_location == 0xFFFFFFFF ||
-        m_direction_light_location.color == 0xFFFFFFFF ||
-        m_direction_light_location.diffuse_intensity == 0xFFFFFFFF ||
-        m_direction_light_location.direction == 0xFFFFFFFF ||
-        m_camera_position_location == 0xFFFFFFFF ||
-        m_mat_specular_intensity_location == 0xFFFFFFFF ||
-        m_mat_specular_power_location == 0xFFFFFFFF) {
+    if (m_direction_light_location.ambient_intensity == invalid_uniform_location ||
+        m_wvp_location == invalid_uniform_location ||
+        m_world_matrix_location == invalid_uniform_location ||
+        m_sampler_location == invalid_uniform_location ||
+        m_direction_light_location.color == invalid_uniform_location ||
+        m_direction_light_location.diffuse_intensity == invalid_uniform_location ||
+        m_direction_light_location.direction == invalid_uniform_location ||
+        m_camera_position_location == invalid_uniform_location ||
+        m_mat_specular_intensity_location == invalid_uniform_location ||
+        m_mat_specular_power_location == invalid_uniform_location) {
         return false;
     }
 
@@ -259,4 +280,9 @@ void LightingEffect::set_point_lights(const std::vector<PointLight> & lights)
         glUniform1f(m_point_lights_location[i].atten.linear, lights[i].attentuation.linear);
         glUniform1f(m_point_lights_location[i].atten.exp, lights[i].attentuation.exp);
     }
+}
+
+void LightingEffect::set_shadow_map_texture(unsigned int texture_unit)
+{
+
 }
