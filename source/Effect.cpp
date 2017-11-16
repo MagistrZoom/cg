@@ -97,7 +97,7 @@ GLint Effect::get_uniform_location(const char * uniform_name)
 {
     GLint location = glGetUniformLocation(m_shader_prog, uniform_name);
 
-    if (location == 0xFFFFFFFF) {
+    if (location == invalid_uniform_location) {
         fprintf(stderr, "Warning! Unable to get the location of uniform '%s'\n", uniform_name);
     }
 

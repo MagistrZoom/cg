@@ -8,6 +8,7 @@
 #include <glm/gtx/transform.hpp>
 
 #define MAX_POINT_LIGHTS 3
+#define MAX_SPOT_LIGHTS 2
 
 struct BaseLight
 {
@@ -53,6 +54,18 @@ struct PointLight : public BaseLight
     }
 };
 
+struct SpotLight : public PointLight
+{
+    glm::vec3 direction;
+    float cutoff;
+
+    SpotLight()
+    {
+        direction = glm::vec3(0.0f, 0.0f, 0.0f);
+        cutoff = 0.0f;
+    }
+};
+
 class LightingEffect : public Effect
 {
 public:
@@ -67,6 +80,7 @@ public:
     void set_specular_power(float power);
 
     void set_point_lights(const std::vector<PointLight> & lights);
+    void set_spot_lights(const std::vector<SpotLight> & lights);
 
     void set_texture_unit(unsigned int texture_unit);
 
@@ -106,6 +120,24 @@ private:
             GLuint exp;
         } atten;
     };
+
+    struct SpotLightLocation
+    {
+        GLuint color;
+        GLuint ambient_intensity;
+        GLuint diffuse_intensity;
+        GLuint position;
+        GLuint direction;
+        GLuint cutoff;
+        struct {
+            GLuint constant;
+            GLuint linear;
+            GLuint exp;
+        } atten;
+    };
+
     GLuint m_num_point_location;
     PointLightLocation m_point_lights_location[MAX_POINT_LIGHTS];
+    GLuint m_num_spot_location;
+    SpotLightLocation m_spot_lights_location[MAX_SPOT_LIGHTS];
 };

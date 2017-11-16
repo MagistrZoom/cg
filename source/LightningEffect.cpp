@@ -30,6 +30,7 @@ static const char * pFS = "                                                     
 #version 330                                                                        \n\
                                                                                     \n\
 const int MAX_POINT_LIGHTS = 3;                                                     \n\
+const int MAX_SPOT_LIGHTS = 2;                                                      \n\
                                                                                     \n\
 in vec2 UV;                                                                         \n\
 in vec3 Normal0;                                                                    \n\
@@ -65,6 +66,13 @@ struct PointLight                                                               
     Attenuation atten;                                                              \n\
 };                                                                                  \n\
                                                                                     \n\
+struct SpotLight                                                                    \n\
+{                                                                                   \n\
+    PointLight base;                                                                \n\
+    vec3 direction;                                                                 \n\
+    float cutoff;                                                                   \n\
+};                                                                                  \n\
+                                                                                    \n\
 uniform DirectionalLight gDirectionalLight;                                         \n\
 uniform sampler2D gSampler;                                                         \n\
 uniform sampler2D gShadowMap;                                                       \n\
@@ -73,7 +81,9 @@ uniform vec3 gCameraPosition;                                                   
 uniform float gMatSpecularIntensity;                                                \n\
 uniform float gMatSpecularPower;                                                    \n\
 uniform PointLight gPointLights[MAX_POINT_LIGHTS];                                  \n\
+uniform SpotLight  gSpotLights[MAX_SPOT_LIGHTS];                                    \n\
 uniform int gNumPointLights;                                                        \n\
+uniform int gNumSpotLights;                                                         \n\
                                                                                     \n\
 float CalcShadowFactor(vec4 LightSpacePos)                                          \n\
 {                                                                                   \n\
@@ -117,32 +127,50 @@ vec4 CalcDirectionalLight(vec3 Normal)                                          
     return CalcLightInternal(gDirectionalLight.base, gDirectionalLight.direction, Normal, 1.0);      \n\
 }                                                                                                    \n\
                                                                                                      \n\
-vec4 CalcPointLight(int Index, vec3 Normal)                                                          \n\
+vec4 CalcPointLight(PointLight light, vec3 Normal)                                                   \n\
 {                                                                                                    \n\
-    vec3 light_direction = WorldPos0 - gPointLights[Index].position;                                 \n\
+    vec3 light_direction = WorldPos0 - light.position;                                 \n\
     float Distance = length(light_direction);                                                        \n\
     light_direction = normalize(light_direction);                                                    \n\
                                                                                                      \n\
     float ShadowFactor = CalcShadowFactor(LightSpacePos);                                            \n\
                                                                                                      \n\
-    vec4 color = CalcLightInternal(gPointLights[Index].base, light_direction, Normal, ShadowFactor); \n\
-    float attentuation =  gPointLights[Index].atten.constant +                                       \n\
-                         gPointLights[Index].atten.linear * Distance +                               \n\
-                         gPointLights[Index].atten.exp * Distance * Distance;                        \n\
-                                                                                                     \n\
-    return color / attentuation;                                                                     \n\
-}                                                                                                    \n\
-                                                                                                     \n\
-void main()                                                                                          \n\
-{                                                                                                    \n\
-    vec3 Normal = normalize(Normal0);                                                                \n\
-    vec4 TotalLight = CalcDirectionalLight(Normal);                                                  \n\
-                                                                                                     \n\
-    for (int i = 0 ; i < gNumPointLights ; i++) {                                                    \n\
-        TotalLight += CalcPointLight(i, Normal);                                                     \n\
-    }                                                                                                \n\
-                                                                                                     \n\
-    FragColor = texture2D(gSampler, UV) * TotalLight;                                                \n\
+    vec4 color = CalcLightInternal(light.base, light_direction, Normal, ShadowFactor); \n\
+    float attentuation = light.atten.constant +                                        \n\
+                         light.atten.linear * Distance +                               \n\
+                         light.atten.exp * Distance * Distance;                        \n\
+                                                                             \n\
+    return color / attentuation;                                             \n\
+}                                                                            \n\
+                                                                             \n\
+vec4 CalcSpotLight(SpotLight l, vec3 Normal)                                 \n\
+{                                                                            \n\
+    vec3 LightToPixel = normalize(WorldPos0 - l.base.position);              \n\
+    float SpotFactor = dot(LightToPixel, l.direction);                       \n\
+                                                                             \n\
+    if (SpotFactor > l.cutoff) {                                             \n\
+        vec4 Color = CalcPointLight(l.base, Normal);                         \n\
+        return Color * (1.0 - (1.0 - SpotFactor) * 1.0/(1.0 - l.cutoff));    \n\
+    }                                                                        \n\
+    else {                                                                   \n\
+        return vec4(0,0,0,0);                                                \n\
+    }                                                                        \n\
+}                                                                            \n\
+                                                                             \n\
+void main()                                                                  \n\
+{                                                                            \n\
+    vec3 Normal = normalize(Normal0);                                        \n\
+    vec4 TotalLight = CalcDirectionalLight(Normal);                          \n\
+                                                                             \n\
+    for (int i = 0 ; i < gNumPointLights ; i++) {                            \n\
+        TotalLight += CalcPointLight(gPointLights[i], Normal);               \n\
+    }                                                                        \n\
+                                                                             \n\
+    for (int i = 0 ; i < gNumSpotLights ; i++) {                             \n\
+        TotalLight += CalcSpotLight(gSpotLights[i], Normal);                 \n\
+    }                                                                        \n\
+                                                                             \n\
+    FragColor = texture2D(gSampler, UV) * TotalLight;                        \n\
 }";
 
 bool LightingEffect::init()
@@ -218,6 +246,50 @@ bool LightingEffect::init()
         }
     }
 
+    m_num_spot_location = get_uniform_location("gNumSpotLights");
+
+    for (unsigned int i = 0 ; i < sizeof(m_spot_lights_location)/sizeof(m_spot_lights_location[0]) ; i++) {
+        char Name[128] = { 0 };
+        // TODO: WTF???
+        snprintf(Name, sizeof(Name), "gSpotLights[%d].base.base.color", i);
+        m_spot_lights_location[i].color = get_uniform_location(Name);
+
+        snprintf(Name, sizeof(Name), "gSpotLights[%d].base.base.ambient_intensity", i);
+        m_spot_lights_location[i].ambient_intensity = get_uniform_location(Name);
+
+        snprintf(Name, sizeof(Name), "gSpotLights[%d].base.position", i);
+        m_spot_lights_location[i].position = get_uniform_location(Name);
+
+        snprintf(Name, sizeof(Name), "gSpotLights[%d].direction", i);
+        m_spot_lights_location[i].direction = get_uniform_location(Name);
+
+        snprintf(Name, sizeof(Name), "gSpotLights[%d].cutoff", i);
+        m_spot_lights_location[i].cutoff = get_uniform_location(Name);
+
+        snprintf(Name, sizeof(Name), "gSpotLights[%d].base.base.diffuse_intensity", i);
+        m_spot_lights_location[i].diffuse_intensity = get_uniform_location(Name);
+
+        snprintf(Name, sizeof(Name), "gSpotLights[%d].base.atten.constant", i);
+        m_spot_lights_location[i].atten.constant = get_uniform_location(Name);
+
+        snprintf(Name, sizeof(Name), "gSpotLights[%d].base.atten.linear", i);
+        m_spot_lights_location[i].atten.linear = get_uniform_location(Name);
+
+        snprintf(Name, sizeof(Name), "gSpotLights[%d].base.atten.exp", i);
+        m_spot_lights_location[i].atten.exp = get_uniform_location(Name);
+
+        if (m_spot_lights_location[i].color == invalid_uniform_location ||
+            m_spot_lights_location[i].ambient_intensity == invalid_uniform_location ||
+            m_spot_lights_location[i].position == invalid_uniform_location ||
+            m_spot_lights_location[i].direction == invalid_uniform_location ||
+            m_spot_lights_location[i].cutoff == invalid_uniform_location ||
+            m_spot_lights_location[i].diffuse_intensity == invalid_uniform_location ||
+            m_spot_lights_location[i].atten.constant == invalid_uniform_location ||
+            m_spot_lights_location[i].atten.linear == invalid_uniform_location ||
+            m_spot_lights_location[i].atten.exp == invalid_uniform_location) {
+            return false;
+        }
+    }
 
     if (m_direction_light_location.ambient_intensity == invalid_uniform_location ||
         m_wvp_location == invalid_uniform_location ||
@@ -229,6 +301,7 @@ bool LightingEffect::init()
         m_camera_position_location == invalid_uniform_location ||
         m_mat_specular_intensity_location == invalid_uniform_location ||
         m_num_point_location == invalid_uniform_location ||
+        m_num_spot_location == invalid_uniform_location ||
         m_shadow_map_location == invalid_uniform_location ||
         m_light_wvp_location == invalid_uniform_location ||
         m_mat_specular_power_location == invalid_uniform_location) {
@@ -285,6 +358,24 @@ void LightingEffect::set_point_lights(const std::vector<PointLight> & lights)
         glUniform1f(m_point_lights_location[i].atten.constant, lights[i].attentuation.constant);
         glUniform1f(m_point_lights_location[i].atten.linear, lights[i].attentuation.linear);
         glUniform1f(m_point_lights_location[i].atten.exp, lights[i].attentuation.exp);
+    }
+}
+
+void LightingEffect::set_spot_lights(const std::vector<SpotLight> & lights)
+{
+    assert(lights.size() <= MAX_SPOT_LIGHTS);
+    glUniform1i(m_num_spot_location, lights.size());
+
+    for (unsigned int i = 0; i < lights.size(); i++) {
+        glUniform3f(m_spot_lights_location[i].color, lights[i].color.x, lights[i].color.y, lights[i].color.z);
+        glUniform1f(m_spot_lights_location[i].ambient_intensity, lights[i].ambient_intensity);
+        glUniform1f(m_spot_lights_location[i].diffuse_intensity, lights[i].diffuse_intensity);
+        glUniform3f(m_spot_lights_location[i].position, lights[i].position.x, lights[i].position.y, lights[i].position.z);
+        glUniform3f(m_spot_lights_location[i].direction, lights[i].direction.x, lights[i].direction.y, lights[i].direction.z);
+        glUniform1f(m_spot_lights_location[i].cutoff, glm::cos(glm::radians(lights[i].cutoff)));
+        glUniform1f(m_spot_lights_location[i].atten.constant, lights[i].attentuation.constant);
+        glUniform1f(m_spot_lights_location[i].atten.linear, lights[i].attentuation.linear);
+        glUniform1f(m_spot_lights_location[i].atten.exp, lights[i].attentuation.exp);
     }
 }
 

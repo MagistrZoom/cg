@@ -21,6 +21,14 @@
 #include <stdlib.h>
 #include <vector>
 
+#include <iostream>
+
+std::ostream & operator << (std::ostream & strm, const glm::vec3 & vec)
+{
+    strm << '(' << vec.x << ", " << vec.y << ", " << vec.z << ')';
+    return strm;
+}
+
 int main(void)
 {
     // Initialise GLFW
@@ -95,20 +103,17 @@ int main(void)
 
     LightingEffect lightning_effect; 
     assert(lightning_effect.init());
-    DirectionalLight light_direction;
-    light_direction.color = glm::vec3(1.0f, 1.0f, 1.0f);
-    light_direction.ambient_intensity = 0.0f;
-    light_direction.diffuse_intensity = 0.5f;
-    light_direction.direction = glm::vec3(-0.5f, 0.2f, -0.5f);
 
-    std::vector<PointLight> pl;
-    PointLight p;
-    pl.emplace_back(p);
-    pl[0].diffuse_intensity = 1.0f;
-    pl[0].color = glm::vec3(1.0f, 1.0f, 1.0f);
-    pl[0].attentuation.linear = 0.1f;
-    pl[0].position = glm::vec3(-20.0f, 5.0f, -20.0f);
-
+    std::vector<SpotLight> sl;
+    SpotLight s;
+    sl.emplace_back(s);
+    sl[0].diffuse_intensity = 25.0f;
+    sl[0].color = glm::vec3(1.0f, 1.0f, 1.0f);
+    sl[0].attentuation.linear = 0.1f;
+    sl[0].cutoff = 45.0f;
+    sl[0].position = glm::vec3(19.2437f, 23.7128f, -41.0067f);
+    sl[0].direction = glm::vec3(0.287091f, -0.466079f, 0.836869f);
+    
     /*
      * Shadow stuff
      */
@@ -121,8 +126,8 @@ int main(void)
 
     do {
         Pipeline p;
-        p.world_position(0.0f, 5.0f, 0.0f);
-        p.set_camera(pl[0].position, glm::vec3(-1.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+        p.world_position(0.0f, 0.0f, 0.0f);
+        p.set_camera(sl[0].position, sl[0].direction, glm::vec3(0.0f, 1.0f, 0.0f));
         p.set_perspective(45.0f, 1920, 1080, 0.1f, 500.0f);
 
         /* 1 step - make shadow */
@@ -135,7 +140,7 @@ int main(void)
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-        /* 2 step - make shadow */
+        /* 2 step - make objects */
 
         // Clear the screen
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -145,36 +150,35 @@ int main(void)
 
         const auto & position = camera->get_position();
         const auto & target = camera->get_target();
+        // std::cout << "Pos: " << position << ", direction: " << target << '\n';
         const auto & up = camera->get_up();
 
-        p.set_camera(position, target, up);
-        lightning_effect.set_wvp(p.get_wvp());
-        lightning_effect.set_world_matrix(p.get_world());
-        lightning_effect.set_camera_position(position);
-        p.set_camera(pl[0].position, glm::vec3(-1.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-        lightning_effect.set_light_wvp(p.get_wvp());
-        lightning_effect.set_directional_light(light_direction);
-        lightning_effect.set_specular_intensity(1.0f);
-        lightning_effect.set_specular_power(4.0f);
-        lightning_effect.set_point_lights(pl);
-        lightning_effect.set_texture_unit(0);
-
-        home_texture.bind(GL_TEXTURE0);
-        home.render();
-
-        p.rotate(M_PI/2, glm::vec3(1.0f, 0.0f, 0.0f));
-        p.scale(45.0f, 45.0f, 45.0f);
         p.world_position(0.0f, 0.0f, 0.0f);
         p.set_camera(position, target, up);
         lightning_effect.set_wvp(p.get_wvp());
         lightning_effect.set_world_matrix(p.get_world());
         lightning_effect.set_camera_position(position);
-        p.set_camera(pl[0].position, glm::vec3(-1.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f));
         lightning_effect.set_light_wvp(p.get_wvp());
-        lightning_effect.set_directional_light(light_direction);
         lightning_effect.set_specular_intensity(1.0f);
         lightning_effect.set_specular_power(4.0f);
-        lightning_effect.set_point_lights(pl);
+        lightning_effect.set_spot_lights(sl);
+        lightning_effect.set_texture_unit(0);
+
+        home_texture.bind(GL_TEXTURE0);
+        home.render();
+
+
+        p.rotate(M_PI/2, glm::vec3(1.0f, 0.0f, 0.0f));
+        p.scale(45.0f, 45.0f, 45.0f);
+        p.world_position(0.0f, -6.2f, 0.0f);
+        p.set_camera(position, target, up);
+        lightning_effect.set_wvp(p.get_wvp());
+        lightning_effect.set_world_matrix(p.get_world());
+        lightning_effect.set_camera_position(position);
+        lightning_effect.set_light_wvp(p.get_wvp());
+        lightning_effect.set_specular_intensity(1.0f);
+        lightning_effect.set_specular_power(4.0f);
+        lightning_effect.set_spot_lights(sl);
         lightning_effect.set_texture_unit(1);
 
         quad_texture.bind(GL_TEXTURE1);
