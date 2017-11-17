@@ -26,7 +26,7 @@ out vec4 FragColor;                                                             
                                                                                     \n\
 void main()                                                                         \n\
 {                                                                                   \n\
-    float Depth = texture(gShadowMap, UV).x;                                        \n\
+    float Depth = texture2D(gShadowMap, UV).x;                                      \n\
     Depth = 1.0 - (1.0 - Depth) * 25.0;                                             \n\
     FragColor = vec4(Depth);                                                        \n\
 }";

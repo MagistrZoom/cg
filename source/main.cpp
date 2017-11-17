@@ -81,9 +81,6 @@ int main(void)
     // Accept fragment if it closer to the camera than the former one
     glDepthFunc(GL_LESS);
 
-    // Cull triangles which normal is not towards the camera
-    glCullFace(GL_CCW);
-
     auto camera = Camera::get_camera(window);
 
     /*
@@ -107,13 +104,19 @@ int main(void)
     std::vector<SpotLight> sl;
     SpotLight s;
     sl.emplace_back(s);
+    // sl.emplace_back(s);
     sl[0].diffuse_intensity = 25.0f;
     sl[0].color = glm::vec3(1.0f, 1.0f, 1.0f);
     sl[0].attentuation.linear = 0.1f;
     sl[0].cutoff = 45.0f;
     sl[0].position = glm::vec3(19.2437f, 23.7128f, -41.0067f);
     sl[0].direction = glm::vec3(0.287091f, -0.466079f, 0.836869f);
-    
+
+    // sl[1].diffuse_intensity = 25.0f;
+    // sl[1].color = glm::vec3(1.0f, 1.0f, 1.0f);
+    // sl[1].attentuation.linear = 0.1f;
+    // sl[1].cutoff = 10.0f;
+
     /*
      * Shadow stuff
      */
@@ -126,9 +129,10 @@ int main(void)
 
     do {
         Pipeline p;
-        p.world_position(0.0f, 0.0f, 0.0f);
-        p.set_camera(sl[0].position, sl[0].direction, glm::vec3(0.0f, 1.0f, 0.0f));
         p.set_perspective(45.0f, 1920, 1080, 0.1f, 500.0f);
+        sl[0].direction = glm::vec3(0.287091f, -0.466079f, 0.836869f);
+        p.set_camera(sl[0].position, sl[0].direction, glm::vec3(0.0f, 1.0f, 0.0f));
+        p.world_position(0.0f, 0.0f, 0.0f);
 
         /* 1 step - make shadow */
         shadow_map_fbo.write_bind();
@@ -153,34 +157,31 @@ int main(void)
         // std::cout << "Pos: " << position << ", direction: " << target << '\n';
         const auto & up = camera->get_up();
 
-        p.world_position(0.0f, 0.0f, 0.0f);
         p.set_camera(position, target, up);
         lightning_effect.set_wvp(p.get_wvp());
         lightning_effect.set_world_matrix(p.get_world());
         lightning_effect.set_camera_position(position);
+        p.set_camera(sl[0].position, sl[0].direction, glm::vec3(0.0f, 1.0f, 0.0f));
         lightning_effect.set_light_wvp(p.get_wvp());
-        lightning_effect.set_specular_intensity(1.0f);
+        lightning_effect.set_specular_intensity(0.0f);
         lightning_effect.set_specular_power(4.0f);
         lightning_effect.set_spot_lights(sl);
         lightning_effect.set_texture_unit(0);
+        lightning_effect.set_shadow_map_texture(2);
 
         home_texture.bind(GL_TEXTURE0);
         home.render();
 
 
-        p.rotate(M_PI/2, glm::vec3(1.0f, 0.0f, 0.0f));
         p.scale(45.0f, 45.0f, 45.0f);
+        // p.rotate(M_PI/2, glm::vec3(1.0f, 0.0f, 0.0f));
         p.world_position(0.0f, -6.2f, 0.0f);
         p.set_camera(position, target, up);
         lightning_effect.set_wvp(p.get_wvp());
         lightning_effect.set_world_matrix(p.get_world());
-        lightning_effect.set_camera_position(position);
+        p.set_camera(sl[0].position, sl[0].direction, glm::vec3(0.0f, 1.0f, 0.0f));
         lightning_effect.set_light_wvp(p.get_wvp());
-        lightning_effect.set_specular_intensity(1.0f);
-        lightning_effect.set_specular_power(4.0f);
-        lightning_effect.set_spot_lights(sl);
         lightning_effect.set_texture_unit(1);
-
         quad_texture.bind(GL_TEXTURE1);
         surface.render();
 

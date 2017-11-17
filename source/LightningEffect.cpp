@@ -91,8 +91,8 @@ float CalcShadowFactor(vec4 LightSpacePos)                                      
     vec2 UVCoords;                                                                  \n\
     UVCoords.x = 0.5 * ProjCoords.x + 0.5;                                          \n\
     UVCoords.y = 0.5 * ProjCoords.y + 0.5;                                          \n\
-    float z= 0.5 * ProjCoords.z + 0.5;                                              \n\
-    float Depth = texture(gShadowMap, UVCoords).x;                                  \n\
+    float z = 0.5 * ProjCoords.z + 0.5;                                             \n\
+    float Depth = texture2D(gShadowMap, UVCoords).x;                                \n\
     if (Depth < (z + 0.00001))                                                      \n\
         return 0.5;                                                                 \n\
     else                                                                            \n\
@@ -129,16 +129,16 @@ vec4 CalcDirectionalLight(vec3 Normal)                                          
                                                                                                      \n\
 vec4 CalcPointLight(PointLight light, vec3 Normal)                                                   \n\
 {                                                                                                    \n\
-    vec3 light_direction = WorldPos0 - light.position;                                 \n\
+    vec3 light_direction = WorldPos0 - light.position;                                               \n\
     float Distance = length(light_direction);                                                        \n\
     light_direction = normalize(light_direction);                                                    \n\
                                                                                                      \n\
     float ShadowFactor = CalcShadowFactor(LightSpacePos);                                            \n\
                                                                                                      \n\
-    vec4 color = CalcLightInternal(light.base, light_direction, Normal, ShadowFactor); \n\
-    float attentuation = light.atten.constant +                                        \n\
-                         light.atten.linear * Distance +                               \n\
-                         light.atten.exp * Distance * Distance;                        \n\
+    vec4 color = CalcLightInternal(light.base, light_direction, Normal, ShadowFactor);               \n\
+    float attentuation = light.atten.constant +                                                      \n\
+                         light.atten.linear * Distance +                                             \n\
+                         light.atten.exp * Distance * Distance;                                      \n\
                                                                              \n\
     return color / attentuation;                                             \n\
 }                                                                            \n\
@@ -371,7 +371,8 @@ void LightingEffect::set_spot_lights(const std::vector<SpotLight> & lights)
         glUniform1f(m_spot_lights_location[i].ambient_intensity, lights[i].ambient_intensity);
         glUniform1f(m_spot_lights_location[i].diffuse_intensity, lights[i].diffuse_intensity);
         glUniform3f(m_spot_lights_location[i].position, lights[i].position.x, lights[i].position.y, lights[i].position.z);
-        glUniform3f(m_spot_lights_location[i].direction, lights[i].direction.x, lights[i].direction.y, lights[i].direction.z);
+	glm::vec3 direction = glm::normalize(lights[i].direction);
+        glUniform3f(m_spot_lights_location[i].direction, direction.x, direction.y, direction.z);
         glUniform1f(m_spot_lights_location[i].cutoff, glm::cos(glm::radians(lights[i].cutoff)));
         glUniform1f(m_spot_lights_location[i].atten.constant, lights[i].attentuation.constant);
         glUniform1f(m_spot_lights_location[i].atten.linear, lights[i].attentuation.linear);

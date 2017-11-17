@@ -58,7 +58,7 @@ bool loadOBJ(
             unsigned int vertexIndex[3], uvIndex[3], normalIndex[3];
             int matches = fscanf(file, "%d/%d/%d %d/%d/%d %d/%d/%d\n", &vertexIndex[0], &uvIndex[0], &normalIndex[0], &vertexIndex[1], &uvIndex[1], &normalIndex[1], &vertexIndex[2], &uvIndex[2], &normalIndex[2]);
             if (matches != 9) {
-                printf("File can't be read by our simple parser :-( Try exporting with other options\n");
+                printf("File can't be read by this simple parser Try exporting with other options\n");
                 fclose(file);
                 return false;
             }
@@ -74,8 +74,8 @@ bool loadOBJ(
         }
         else {
             // Probably a comment, eat up the rest of the line
-            char stupidBuffer[1000];
-            fgets(stupidBuffer, 1000, file);
+            char buf[1000];
+            fgets(buf, 1000, file);
         }
     }
 
