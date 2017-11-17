@@ -104,18 +104,18 @@ int main(void)
     std::vector<SpotLight> sl;
     SpotLight s;
     sl.emplace_back(s);
-    // sl.emplace_back(s);
-    sl[0].diffuse_intensity = 25.0f;
+    sl.emplace_back(s);
+    sl[0].diffuse_intensity = 15.0f;
     sl[0].color = glm::vec3(1.0f, 1.0f, 1.0f);
     sl[0].attentuation.linear = 0.1f;
     sl[0].cutoff = 45.0f;
     sl[0].position = glm::vec3(19.2437f, 23.7128f, -41.0067f);
     sl[0].direction = glm::vec3(0.287091f, -0.466079f, 0.836869f);
 
-    // sl[1].diffuse_intensity = 25.0f;
-    // sl[1].color = glm::vec3(1.0f, 1.0f, 1.0f);
-    // sl[1].attentuation.linear = 0.1f;
-    // sl[1].cutoff = 10.0f;
+    sl[1].diffuse_intensity = 25.0f;
+    sl[1].color = glm::vec3(1.0f, 1.0f, 1.0f);
+    sl[1].attentuation.linear = 0.1f;
+    sl[1].cutoff = 10.0f;
 
     /*
      * Shadow stuff
@@ -127,10 +127,10 @@ int main(void)
     shadow_map.set_texture_unit(2);
     lightning_effect.set_shadow_map_texture(2);
 
+    float scale = 0.0f;
     do {
         Pipeline p;
         p.set_perspective(45.0f, 1920, 1080, 0.1f, 500.0f);
-        sl[0].direction = glm::vec3(0.287091f, -0.466079f, 0.836869f);
         p.set_camera(sl[0].position, sl[0].direction, glm::vec3(0.0f, 1.0f, 0.0f));
         p.world_position(0.0f, 0.0f, 0.0f);
 
