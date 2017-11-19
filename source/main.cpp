@@ -94,6 +94,10 @@ int main(void)
     Object surface("models/quad/quad.obj");
     assert(surface.init());
 
+    Texture earth(GL_TEXTURE_2D, "models/sphere/BlueMarble-2001-2002.jpg");
+    Object sphere("models/sphere/sphere.obj");
+    assert(sphere.init());
+
     /*
      * Light stuff
      */
@@ -124,23 +128,27 @@ int main(void)
     assert(shadow_map_fbo.init(1920, 1080));
     ShadowMapEffect shadow_map;
     assert(shadow_map.init());
-    shadow_map.set_texture_unit(2);
-    lightning_effect.set_shadow_map_texture(2);
+    shadow_map.set_texture_unit(3);
+    lightning_effect.set_shadow_map_texture(3);
 
     float scale = 0.0f;
     do {
         Pipeline p;
         p.set_perspective(45.0f, 1920, 1080, 0.1f, 500.0f);
         p.set_camera(sl[0].position, sl[0].direction, glm::vec3(0.0f, 1.0f, 0.0f));
-        p.world_position(0.0f, 0.0f, 0.0f);
 
         /* 1 step - make shadow */
         shadow_map_fbo.write_bind();
         glClear(GL_DEPTH_BUFFER_BIT);
         shadow_map.enable();
 
+        p.world_position(0.0f, 0.0f, 0.0f);
         shadow_map.set_wvp(p.get_wvp());
         home.render();
+
+        p.world_position(29.6273, 0.8991, 17.2165);
+        shadow_map.set_wvp(p.get_wvp());
+        sphere.render();
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -150,13 +158,13 @@ int main(void)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         lightning_effect.enable();
-        shadow_map_fbo.read_bind(GL_TEXTURE2);
+        shadow_map_fbo.read_bind(GL_TEXTURE3);
 
         const auto & position = camera->get_position();
         const auto & target = camera->get_target();
-        // std::cout << "Pos: " << position << ", direction: " << target << '\n';
         const auto & up = camera->get_up();
 
+        p.world_position(0.0f, 0.0f, 0.0f);
         p.set_camera(position, target, up);
         lightning_effect.set_wvp(p.get_wvp());
         lightning_effect.set_world_matrix(p.get_world());
@@ -167,13 +175,29 @@ int main(void)
         lightning_effect.set_specular_power(4.0f);
         lightning_effect.set_spot_lights(sl);
         lightning_effect.set_texture_unit(0);
-        lightning_effect.set_shadow_map_texture(2);
+        lightning_effect.set_shadow_map_texture(3);
 
         home_texture.bind(GL_TEXTURE0);
         home.render();
 
+        p.world_position(29.6273, 0.8991, 17.2165);
+        p.set_camera(position, target, up);
+        lightning_effect.set_wvp(p.get_wvp());
+        lightning_effect.set_world_matrix(p.get_world());
+        lightning_effect.set_camera_position(position);
+        p.set_camera(sl[0].position, sl[0].direction, glm::vec3(0.0f, 1.0f, 0.0f));
+        lightning_effect.set_light_wvp(p.get_wvp());
+        lightning_effect.set_specular_intensity(0.0f);
+        lightning_effect.set_specular_power(4.0f);
+        lightning_effect.set_spot_lights(sl);
+        lightning_effect.set_texture_unit(2);
+        lightning_effect.set_shadow_map_texture(3);
 
-        p.scale(45.0f, 45.0f, 45.0f);
+        earth.bind(GL_TEXTURE2);
+        sphere.render();
+
+
+        p.scale(60.0f, 60.0f, 60.0f);
         // p.rotate(M_PI/2, glm::vec3(1.0f, 0.0f, 0.0f));
         p.world_position(0.0f, -6.2f, 0.0f);
         p.set_camera(position, target, up);
