@@ -148,7 +148,7 @@ vec4 CalcSpotLight(SpotLight l, vec3 Normal)                                 \n\
     vec3 LightToPixel = normalize(WorldPos0 - l.base.position);              \n\
     float SpotFactor = dot(LightToPixel, l.direction);                       \n\
                                                                              \n\
-    if (SpotFactor > l.cutoff) {                                             \n\
+    if (abs(SpotFactor - l.cutoff) > 0.0001) {                              \n\
         vec4 Color = CalcPointLight(l.base, Normal);                         \n\
         return Color * (1.0 - (1.0 - SpotFactor) * 1.0/(1.0 - l.cutoff));    \n\
     }                                                                        \n\

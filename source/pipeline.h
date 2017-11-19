@@ -30,6 +30,11 @@ public:
         m_rotate_matrix = glm::rotate(angle, vector);
     }
 
+    void rotate()
+    {
+        m_rotate_matrix = glm::mat4(1.0f);
+    }
+
     void set_perspective(float fov, float width, float height, float znear, float zfar)
     {
         m_perspective_matrix = glm::perspective(glm::radians(fov), width / height, znear, zfar);
