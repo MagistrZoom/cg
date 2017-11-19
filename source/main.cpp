@@ -81,13 +81,15 @@ int main(void)
     // Accept fragment if it closer to the camera than the former one
     glDepthFunc(GL_LESS);
 
+    glEnable(GL_CULL_FACE);
+
     auto camera = Camera::get_camera(window);
 
     /*
      * Object stuff
      */
-    Texture home_texture(GL_TEXTURE_2D, "models/farm_house/texture.jpg");
-    Object home("models/farm_house/house2.obj");
+    Texture home_texture(GL_TEXTURE_2D, "models/basic_home/tex_woodlands_main.jpg");
+    Object home("models/basic_home/cabin01.obj");
     assert(home.init());
 
     Texture quad_texture(GL_TEXTURE_2D, "models/quad/test.png");
@@ -104,6 +106,10 @@ int main(void)
 
     LightingEffect lightning_effect; 
     assert(lightning_effect.init());
+
+    DirectionalLight directional_light;
+    directional_light.ambient_intensity = 0.02f;
+    directional_light.color = glm::vec3(1.0f, 1.0f, 1.0f);
 
     std::vector<SpotLight> sl;
     SpotLight s;
@@ -139,15 +145,14 @@ int main(void)
         /* 1 step - make shadow */
         shadow_map_fbo.write_bind();
         glClear(GL_DEPTH_BUFFER_BIT);
+        glCullFace(GL_FRONT);
         shadow_map.enable();
 
         p.world_position(0.0f, 0.0f, 0.0f);
-        p.rotate(glm::radians(-90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
         shadow_map.set_wvp(p.get_wvp());
-        p.rotate();
         home.render();
 
-        p.world_position(29.6273, 5.8991, 17.2165);
+        p.world_position(29.6273, 0.8991, 17.2165);
         shadow_map.set_wvp(p.get_wvp());
         sphere.render();
 
@@ -156,6 +161,7 @@ int main(void)
         /* 2 step - make objects */
 
         // Clear the screen
+
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         lightning_effect.enable();
@@ -165,49 +171,44 @@ int main(void)
         const auto & target = camera->get_target();
         const auto & up = camera->get_up();
 
+        glCullFace(GL_BACK);
         p.world_position(0.0f, 0.0f, 0.0f);
-        p.rotate(glm::radians(-90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
         p.set_camera(position, target, up);
         lightning_effect.set_wvp(p.get_wvp());
         lightning_effect.set_world_matrix(p.get_world());
         lightning_effect.set_camera_position(position);
         p.set_camera(sl[0].position, sl[0].direction, glm::vec3(0.0f, 1.0f, 0.0f));
         lightning_effect.set_light_wvp(p.get_wvp());
-        lightning_effect.set_specular_intensity(0.0f);
-        lightning_effect.set_specular_power(4.0f);
+        lightning_effect.set_directional_light(directional_light);
         lightning_effect.set_spot_lights(sl);
         lightning_effect.set_texture_unit(0);
         lightning_effect.set_shadow_map_texture(3);
-        p.rotate();
 
         home_texture.bind(GL_TEXTURE0);
         home.render();
 
-        p.world_position(29.6273, 5.8991, 17.2165);
+        p.world_position(29.6273, 0.8991, 17.2165);
         p.set_camera(position, target, up);
         lightning_effect.set_wvp(p.get_wvp());
         lightning_effect.set_world_matrix(p.get_world());
-        lightning_effect.set_camera_position(position);
         p.set_camera(sl[0].position, sl[0].direction, glm::vec3(0.0f, 1.0f, 0.0f));
         lightning_effect.set_light_wvp(p.get_wvp());
-        lightning_effect.set_specular_intensity(0.0f);
-        lightning_effect.set_specular_power(4.0f);
-        lightning_effect.set_spot_lights(sl);
         lightning_effect.set_texture_unit(2);
-        lightning_effect.set_shadow_map_texture(3);
 
         earth.bind(GL_TEXTURE2);
         sphere.render();
 
 
+        glCullFace(GL_FRONT);
         p.scale(60.0f, 60.0f, 60.0f);
-        p.world_position(0.0f, 0.0f, 0.0f);
+        p.world_position(0.0f, -6.2f, 0.0f);
         p.set_camera(position, target, up);
         lightning_effect.set_wvp(p.get_wvp());
         lightning_effect.set_world_matrix(p.get_world());
         p.set_camera(sl[0].position, sl[0].direction, glm::vec3(0.0f, 1.0f, 0.0f));
         lightning_effect.set_light_wvp(p.get_wvp());
         lightning_effect.set_texture_unit(1);
+
         quad_texture.bind(GL_TEXTURE1);
         surface.render();
 
