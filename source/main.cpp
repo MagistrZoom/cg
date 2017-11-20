@@ -119,8 +119,8 @@ int main(void)
     sl[0].color = glm::vec3(1.0f, 1.0f, 1.0f);
     sl[0].attentuation.linear = 0.1f;
     sl[0].cutoff = 45.0f;
-    sl[0].position = glm::vec3(19.2437f, 23.7128f, -41.0067f);
-    sl[0].direction = glm::vec3(0.287091f, -0.466079f, 0.836869f);
+    sl[0].position = glm::vec3(56.8312, 33.011, -37.9872);
+    sl[0].direction = glm::vec3(-0.502646, -0.598541, 0.623775);
 
     sl[1].diffuse_intensity = 25.0f;
     sl[1].color = glm::vec3(1.0f, 1.0f, 1.0f);
@@ -168,6 +168,7 @@ int main(void)
 
             const auto & position = camera->get_position();
             const auto & target = camera->get_target();
+            std::cout << position << ';' << target << '\n';
             const auto & up = camera->get_up();
 
             Pipeline p;
