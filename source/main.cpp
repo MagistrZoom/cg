@@ -23,7 +23,7 @@
 
 #include <iostream>
 
-std::ostream & operator << (std::ostream & strm, const glm::vec3 & vec)
+std::ostream & operator<<(std::ostream & strm, const glm::vec3 & vec)
 {
     strm << '(' << vec.x << ", " << vec.y << ", " << vec.z << ')';
     return strm;
@@ -104,7 +104,7 @@ int main(void)
      * Light stuff
      */
 
-    LightingEffect lightning_effect; 
+    LightingEffect lightning_effect;
     assert(lightning_effect.init());
 
     DirectionalLight directional_light;
@@ -114,18 +114,12 @@ int main(void)
     std::vector<SpotLight> sl;
     SpotLight s;
     sl.emplace_back(s);
-    sl.emplace_back(s);
     sl[0].diffuse_intensity = 15.0f;
     sl[0].color = glm::vec3(1.0f, 1.0f, 1.0f);
     sl[0].attentuation.linear = 0.1f;
     sl[0].cutoff = 45.0f;
     sl[0].position = glm::vec3(56.8312, 33.011, -37.9872);
     sl[0].direction = glm::vec3(-0.502646, -0.598541, 0.623775);
-
-    sl[1].diffuse_intensity = 25.0f;
-    sl[1].color = glm::vec3(1.0f, 1.0f, 1.0f);
-    sl[1].attentuation.linear = 0.1f;
-    sl[1].cutoff = 10.0f;
 
     /*
      * Shadow stuff
@@ -137,7 +131,12 @@ int main(void)
     shadow_map.set_texture_unit(3);
     lightning_effect.set_shadow_map_texture(3);
 
+    float scale = 0.0f;
+    s = sl[0];
     do {
+        sl[0] = s;
+        sl[0].position.x += 3 * glm::cos(scale);
+        sl[0].position.y += 1 * glm::sin(scale);
         {
             Pipeline p;
             p.set_perspective(60.0f, 1920, 1080, 0.1f, 500.0f);
@@ -215,12 +214,12 @@ int main(void)
             surface.render();
         }
 
+        scale += 0.05f;
         // Swap buffers
         glfwSwapBuffers(window);
         glfwPollEvents();
-    }
-    while (glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS &&
-           glfwWindowShouldClose(window) == 0);
+    } while (glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS &&
+             glfwWindowShouldClose(window) == 0);
 
     // Close OpenGL window and terminate GLFW
     glfwTerminate();
