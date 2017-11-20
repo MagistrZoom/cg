@@ -138,80 +138,81 @@ int main(void)
     lightning_effect.set_shadow_map_texture(3);
 
     do {
-        Pipeline p;
-        p.set_perspective(45.0f, 1920, 1080, 0.1f, 500.0f);
-        p.set_camera(sl[0].position, sl[0].direction, glm::vec3(0.0f, 1.0f, 0.0f));
+        {
+            Pipeline p;
+            p.set_perspective(60.0f, 1920, 1080, 0.1f, 500.0f);
+            p.set_camera(sl[0].position, sl[0].direction, glm::vec3(0.0f, 1.0f, 0.0f));
+            /* 1 step - make shadow */
+            shadow_map_fbo.write_bind();
+            glClear(GL_DEPTH_BUFFER_BIT);
+            glCullFace(GL_FRONT);
+            shadow_map.enable();
 
-        /* 1 step - make shadow */
-        shadow_map_fbo.write_bind();
-        glClear(GL_DEPTH_BUFFER_BIT);
-        glCullFace(GL_FRONT);
-        shadow_map.enable();
+            p.world_position(0.0f, 0.0f, 0.0f);
+            shadow_map.set_wvp(p.get_wvp());
+            home.render();
 
-        p.world_position(0.0f, 0.0f, 0.0f);
-        shadow_map.set_wvp(p.get_wvp());
-        home.render();
-
-        p.world_position(29.6273, 0.8991, 17.2165);
-        shadow_map.set_wvp(p.get_wvp());
-        sphere.render();
-
+            p.world_position(29.6273, 0.8991, 17.2165);
+            shadow_map.set_wvp(p.get_wvp());
+            sphere.render();
+        }
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
         /* 2 step - make objects */
 
-        // Clear the screen
+        {
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            lightning_effect.enable();
+            shadow_map_fbo.read_bind(GL_TEXTURE3);
 
-        lightning_effect.enable();
-        shadow_map_fbo.read_bind(GL_TEXTURE3);
+            const auto & position = camera->get_position();
+            const auto & target = camera->get_target();
+            const auto & up = camera->get_up();
 
-        const auto & position = camera->get_position();
-        const auto & target = camera->get_target();
-        const auto & up = camera->get_up();
+            Pipeline p;
+            p.set_perspective(60.0f, 1920, 1080, 0.1f, 500.0f);
 
-        glCullFace(GL_BACK);
-        p.world_position(0.0f, 0.0f, 0.0f);
-        p.set_camera(position, target, up);
-        lightning_effect.set_wvp(p.get_wvp());
-        lightning_effect.set_world_matrix(p.get_world());
-        lightning_effect.set_camera_position(position);
-        p.set_camera(sl[0].position, sl[0].direction, glm::vec3(0.0f, 1.0f, 0.0f));
-        lightning_effect.set_light_wvp(p.get_wvp());
-        lightning_effect.set_directional_light(directional_light);
-        lightning_effect.set_spot_lights(sl);
-        lightning_effect.set_texture_unit(0);
-        lightning_effect.set_shadow_map_texture(3);
+            glCullFace(GL_BACK);
+            p.world_position(0.0f, 0.0f, 0.0f);
+            p.set_camera(position, target, up);
+            lightning_effect.set_wvp(p.get_wvp());
+            lightning_effect.set_world_matrix(p.get_world());
+            lightning_effect.set_camera_position(position);
+            p.set_camera(sl[0].position, sl[0].direction, glm::vec3(0.0f, 1.0f, 0.0f));
+            lightning_effect.set_light_wvp(p.get_wvp());
+            lightning_effect.set_directional_light(directional_light);
+            lightning_effect.set_spot_lights(sl);
+            lightning_effect.set_texture_unit(0);
+            lightning_effect.set_shadow_map_texture(3);
 
-        home_texture.bind(GL_TEXTURE0);
-        home.render();
+            home_texture.bind(GL_TEXTURE0);
+            home.render();
 
-        p.world_position(29.6273, 0.8991, 17.2165);
-        p.set_camera(position, target, up);
-        lightning_effect.set_wvp(p.get_wvp());
-        lightning_effect.set_world_matrix(p.get_world());
-        p.set_camera(sl[0].position, sl[0].direction, glm::vec3(0.0f, 1.0f, 0.0f));
-        lightning_effect.set_light_wvp(p.get_wvp());
-        lightning_effect.set_texture_unit(2);
+            p.world_position(29.6273, 0.8991, 17.2165);
+            p.set_camera(position, target, up);
+            lightning_effect.set_wvp(p.get_wvp());
+            lightning_effect.set_world_matrix(p.get_world());
+            p.set_camera(sl[0].position, sl[0].direction, glm::vec3(0.0f, 1.0f, 0.0f));
+            lightning_effect.set_light_wvp(p.get_wvp());
+            lightning_effect.set_texture_unit(2);
 
-        earth.bind(GL_TEXTURE2);
-        sphere.render();
+            earth.bind(GL_TEXTURE2);
+            sphere.render();
 
+            glCullFace(GL_FRONT);
+            p.scale(60.0f, 60.0f, 60.0f);
+            p.world_position(0.0f, -6.2f, 0.0f);
+            p.set_camera(position, target, up);
+            lightning_effect.set_wvp(p.get_wvp());
+            lightning_effect.set_world_matrix(p.get_world());
+            p.set_camera(sl[0].position, sl[0].direction, glm::vec3(0.0f, 1.0f, 0.0f));
+            lightning_effect.set_light_wvp(p.get_wvp());
+            lightning_effect.set_texture_unit(1);
 
-        glCullFace(GL_FRONT);
-        p.scale(60.0f, 60.0f, 60.0f);
-        p.world_position(0.0f, -6.2f, 0.0f);
-        p.set_camera(position, target, up);
-        lightning_effect.set_wvp(p.get_wvp());
-        lightning_effect.set_world_matrix(p.get_world());
-        p.set_camera(sl[0].position, sl[0].direction, glm::vec3(0.0f, 1.0f, 0.0f));
-        lightning_effect.set_light_wvp(p.get_wvp());
-        lightning_effect.set_texture_unit(1);
-
-        quad_texture.bind(GL_TEXTURE1);
-        surface.render();
-
+            quad_texture.bind(GL_TEXTURE1);
+            surface.render();
+        }
 
         // Swap buffers
         glfwSwapBuffers(window);
