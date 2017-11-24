@@ -46,7 +46,7 @@ int main(void)
 
     GLFWwindow * window;
     // Open a window and create its OpenGL context
-    window = glfwCreateWindow(1920, 1080, "Tutorial 07 - Model Loading", NULL, NULL);
+    window = glfwCreateWindow(1366, 768, "Scene", NULL, NULL);
     if (window == NULL) {
         fprintf(stderr, "Failed to open GLFW window. If you have an Intel GPU, they are not 3.3 compatible. Try the 2.1 version of the tutorials.\n");
         getchar();
@@ -71,7 +71,7 @@ int main(void)
 
     // Set the mouse at the center of the screen
     glfwPollEvents();
-    glfwSetCursorPos(window, 1920 / 2, 1080 / 2);
+    glfwSetCursorPos(window, 1366 / 2, 768 / 2);
 
     // Dark black background
     glClearColor(0.376f, 0.235f, 0.149f, 0.0f);
@@ -108,7 +108,7 @@ int main(void)
     assert(lightning_effect.init());
 
     DirectionalLight directional_light;
-    directional_light.ambient_intensity = 0.02f;
+    directional_light.ambient_intensity = 0.2f;
     directional_light.color = glm::vec3(1.0f, 1.0f, 1.0f);
 
     std::vector<SpotLight> sl;
@@ -125,7 +125,7 @@ int main(void)
      * Shadow stuff
      */
     ShadowMapFBO shadow_map_fbo;
-    assert(shadow_map_fbo.init(1920, 1080));
+    assert(shadow_map_fbo.init(1366, 768));
     ShadowMapEffect shadow_map;
     assert(shadow_map.init());
     shadow_map.set_texture_unit(3);
@@ -139,7 +139,7 @@ int main(void)
         sl[0].position.y += 1 * glm::sin(scale);
         {
             Pipeline p;
-            p.set_perspective(60.0f, 1920, 1080, 0.1f, 500.0f);
+            p.set_perspective(60.0f, 1366, 768, 0.1f, 500.0f);
             p.set_camera(sl[0].position, sl[0].direction, glm::vec3(0.0f, 1.0f, 0.0f));
             /* 1 step - make shadow */
             shadow_map_fbo.write_bind();
@@ -171,7 +171,7 @@ int main(void)
             const auto & up = camera->get_up();
 
             Pipeline p;
-            p.set_perspective(60.0f, 1920, 1080, 0.1f, 500.0f);
+            p.set_perspective(60.0f, 1366, 768, 0.1f, 500.0f);
 
             glCullFace(GL_BACK);
             p.world_position(0.0f, 0.0f, 0.0f);
